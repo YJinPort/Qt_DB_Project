@@ -3,11 +3,12 @@
 
 #include <QWidget>
 
+class Shopping;
+class Product;
+
 namespace Ui {
 class ShoppingManager;
 }
-
-class ClientManager;
 
 class ShoppingManager : public QWidget
 {
@@ -16,6 +17,9 @@ class ShoppingManager : public QWidget
 public:
     explicit ShoppingManager(QWidget *parent = nullptr);
     ~ShoppingManager();
+
+    void dataLoad();
+    void dataClear();
 
 private slots:
     void on_pushButton_clicked();
@@ -32,13 +36,23 @@ private slots:
 
     void on_pushButton_4_clicked();
 
+    void receivedProductInfo(Product*);
+
+    void successLoginCheck();
+    void failedLoginCheck();
+
 private:
     Ui::ShoppingManager *ui;
+
+    QMap<int, Shopping*> shoppingList;
 
 signals:
     void newClient();
     void onlyStaff();
     void exitShopping();
+    void viewClientList();
+    void viewProductList();
+    void login(QString);
 };
 
 #endif // SHOPPINGMANAGER_H

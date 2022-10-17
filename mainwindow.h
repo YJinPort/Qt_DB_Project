@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QMdiSubWindow>
+//#include <QMdiSubWindow>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,7 +25,6 @@ private:
     ClientManager *clientManager;
     ProductManager *productManager;
     ShoppingManager *shoppingManager;
-    QMdiSubWindow *subWindow;
 
 public slots:
     void openClientWindow();
@@ -33,5 +32,6 @@ public slots:
     void cancellationClient();
     void joinClient();
     void quitProductWindow();
+
 };
 #endif // MAINWINDOW_H

@@ -4,6 +4,8 @@
 #include <QWidget>
 
 class Product;
+class Client;
+class QTreeWidgetItem;
 
 namespace Ui {
 class ProductManager;
@@ -22,6 +24,16 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void receivedClientInfo(Client*);
+
+    void containProductInfo();
+
+    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
+
+    void on_treeWidget_2_itemClicked(QTreeWidgetItem *item, int column);
+
+    void on_pushButton_4_clicked();
+
 private:
     Ui::ProductManager *ui;
 
@@ -29,7 +41,7 @@ private:
 
 signals:
     void quitProduct();
-
+    void sendProductInfo(Product*);
 };
 
 #endif // PRODUCTMANAGER_H

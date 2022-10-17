@@ -22,6 +22,9 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void containClientInfo();
+    void checkLoginId(QString);
+
 private:
     Ui::ClientManager *ui;
 
@@ -31,6 +34,9 @@ private:
 signals:
     void cancellation();
     void join();
+    void sendClientInfo(Client*);
+    void successLogin();
+    void failedLogin();
 };
 
 #endif // CLIENTMANAGER_H
