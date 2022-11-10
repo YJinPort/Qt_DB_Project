@@ -19,6 +19,8 @@ QString Client::getName() const {
     return text(1);
 }
 
+
+
 //사용자 전화번호를 호출하기 위해 사용
 QString Client::getPhoneNumber() const {
     return text(2);
