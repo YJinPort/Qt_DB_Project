@@ -11,6 +11,7 @@ QT_END_NAMESPACE
 class ClientManager;
 class ProductManager;
 class ShoppingManager;
+class ServerSide;
 
 class MainWindow : public QMainWindow
 {
@@ -25,6 +26,7 @@ private:
     ClientManager *clientManager;
     ProductManager *productManager;
     ShoppingManager *shoppingManager;
+    ServerSide *server;
 
 public slots:
     void openClientWindow();
@@ -32,6 +34,5 @@ public slots:
     void cancellationClient();
     void joinClient();
     void quitProductWindow();
-
 };
 #endif // MAINWINDOW_H

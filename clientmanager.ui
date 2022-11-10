@@ -21,7 +21,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="1" colspan="3">
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="newClientLabel">
      <property name="font">
       <font>
        <pointsize>30</pointsize>
@@ -90,7 +90,7 @@
    <item row="1" column="1" colspan="3">
     <layout class="QFormLayout" name="formLayout">
      <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="userIdLabel">
        <property name="font">
         <font>
          <pointsize>15</pointsize>
@@ -102,10 +102,10 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="userIdLineEdit"/>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="userNameLabel">
        <property name="font">
         <font>
          <pointsize>15</pointsize>
@@ -117,10 +117,10 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="lineEdit_2"/>
+      <widget class="QLineEdit" name="userNameLineEdit"/>
      </item>
      <item row="5" column="0">
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="userCallLabel">
        <property name="font">
         <font>
          <pointsize>15</pointsize>
@@ -132,10 +132,14 @@
       </widget>
      </item>
      <item row="5" column="1">
-      <widget class="QLineEdit" name="lineEdit_3"/>
+      <widget class="QLineEdit" name="userCallLineEdit">
+       <property name="inputMask">
+        <string/>
+       </property>
+      </widget>
      </item>
      <item row="7" column="0">
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="userAddressLabel">
        <property name="font">
         <font>
          <pointsize>15</pointsize>
@@ -147,10 +151,10 @@
       </widget>
      </item>
      <item row="7" column="1">
-      <widget class="QLineEdit" name="lineEdit_4"/>
+      <widget class="QLineEdit" name="userAddressLineEdit"/>
      </item>
      <item row="9" column="0">
-      <widget class="QLabel" name="label_6">
+      <widget class="QLabel" name="userGenderLabel">
        <property name="font">
         <font>
          <pointsize>15</pointsize>
@@ -162,7 +166,7 @@
       </widget>
      </item>
      <item row="9" column="1">
-      <widget class="QComboBox" name="comboBox">
+      <widget class="QComboBox" name="userGenderComboBox">
        <item>
         <property name="text">
          <string>Man</string>
@@ -256,21 +260,21 @@
     </layout>
    </item>
    <item row="2" column="1">
-    <widget class="QCheckBox" name="checkBox_2">
+    <widget class="QCheckBox" name="agreeAddressCheckBox">
      <property name="text">
-      <string>배송지 정보 수집 동의</string>
+      <string>배송지 3자 제공 동의</string>
      </property>
     </widget>
    </item>
    <item row="4" column="3">
-    <widget class="QPushButton" name="pushButton_2">
+    <widget class="QPushButton" name="cancelRegisterPushButton">
      <property name="text">
       <string>등록 취소</string>
      </property>
     </widget>
    </item>
    <item row="4" column="1">
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="clientRegisterPushButton">
      <property name="text">
       <string>회원 등록</string>
      </property>
@@ -290,7 +294,7 @@
     </spacer>
    </item>
    <item row="2" column="3">
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="agreeClientInfoCheckBox">
      <property name="text">
       <string>회원 정보 수집 동의</string>
      </property>
