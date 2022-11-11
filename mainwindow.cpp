@@ -3,7 +3,7 @@
 #include "clientmanager.h"
 #include "productmanager.h"
 #include "shoppingmanager.h"
-#include "serverside.h"
+//#include "serverside.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(shoppingManager, SIGNAL(exitShopping()), this, SLOT(close()));
     connect(shoppingManager, SIGNAL(viewClientList()), clientManager, SLOT(containClientInfo()));
     connect(shoppingManager, SIGNAL(viewProductList()), productManager, SLOT(containProductInfo()));
+    connect(shoppingManager, SIGNAL(clickedSelectButton()), productManager, SLOT(selectProductInfo()));
+    connect(shoppingManager, SIGNAL(resetProductList()), productManager, SLOT(resetProductInfo()));
     connect(shoppingManager, SIGNAL(login(QString)), clientManager, SLOT(checkLoginId(QString)));
     connect(shoppingManager, SIGNAL(takeOrderSign(QString)), clientManager, SLOT(findAddressForOrder(QString)));
     connect(shoppingManager, SIGNAL(updateAfter_upCount(QString, int)), productManager, SLOT(updateAfterUpCount(QString, int)));
@@ -52,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(productManager, SIGNAL(sendProductTable(QSqlTableModel*)), shoppingManager, SLOT(receivedProductInfo(QSqlTableModel*)));
     connect(productManager, SIGNAL(updateBtnClicked(QStringList)), clientManager, SLOT(updateClientInfo(QStringList)));
     connect(productManager, SIGNAL(deleteBtnClicked(QString)), clientManager, SLOT(deleteClientInfo(QString)));
+    connect(productManager, SIGNAL(sendSelectTable(QSqlTableModel*)), shoppingManager, SLOT(viewSelectProductList(QSqlTableModel*)));
+    connect(productManager, SIGNAL(sendResetTable(QSqlTableModel*)), shoppingManager, SLOT(productViewReset(QSqlTableModel*)));
 
     shoppingManager->dataLoad();
 }

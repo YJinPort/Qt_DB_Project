@@ -40,6 +40,8 @@ private slots:
 
     /*쇼핑 화면에서 보낸 SIGNAL 처리*/
     void containProductInfo();                  //쇼핑 화면에서 제품 정보의 리스트를 요청할 경우 제품 정보를 쇼핑 화면으로 보내기 위한 SLOT 함수
+    void selectProductInfo();
+    void resetProductInfo();
     int updateAfterUpCount(QString, int);       //쇼핑 화면에서 주문하기, 주문변경을 하였을 경우 해당 제품의 재고를 확인하고 관리하기 위한 SLOT 함수
     void updateAfterDownCount(QString, int);    //쇼핑 화면에서 주문취소를 하였을 경우 해당 제품의 재고에 취소한 갯수만큼 추가해주기 위한 SLOT 함수
 
@@ -60,6 +62,8 @@ signals:
     /*쇼핑 화면*/
     void sendProductInfo(Product*);         //쇼핑 화면에서 요청한 제품 정보를 전달하기 위해 호출되는 신호
     void sendProductTable(QSqlTableModel*);
+    void sendSelectTable(QSqlTableModel*);
+    void sendResetTable(QSqlTableModel*);
 };
 
 #endif // PRODUCTMANAGER_H

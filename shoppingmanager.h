@@ -49,16 +49,23 @@ private slots:
     void on_exitShoppingPushButton_clicked();       //쇼핑 끝내기 버튼 클릭 시 동작
 
     /*---connect()에서 SIGNAL을 받아 처리하는 SLOT 함수---*/
-    void receivedProductInfo(QSqlTableModel*);             //등록되어 있는 제품 정보를 쇼핑화면의 제품 정보 리스트에 출력하는 SLOT 함수
+    void receivedProductInfo(QSqlTableModel*);      //등록되어 있는 제품 정보를 쇼핑화면의 제품 정보 리스트에 출력하는 SLOT 함수
+    void viewSelectProductList(QSqlTableModel*);
+    void productViewReset(QSqlTableModel*);
     void successLoginCheck(QString);                //로그인 성공 시 동작하는 SLOT 함수
     void failedLoginCheck();                        //로그인 실패 시 동작하는 SLOT 함수
     void clientSignalReceived(QString, QString);    //사용자의 아이디와 리스트를 받아서 채팅서버로 전달하기 위한 SLOT 함수
     void inputNameServerCombobox(QStringList);      //사용자의 이름 리스트를 받아서 채팅서버로 전달하기 위한 SLOT 함수
 
+    void on_selectPushButton_clicked();
+
+    void on_resetPushButton_clicked();
+
 private:
     Ui::ShoppingManager *ui;
 
     int shoppingNumber();                    //주문 번호를 자동으로 생성하여 전달해주기 위한 함수
+    int rowHiddenCount = 0;
     QMap<int, Shopping*> shoppingList;      //주문 정보(내역)을 저장하기 위한 QMap타입의 멤버 변수
     ServerSide *serverForm;
     QSqlQuery *query;
@@ -76,6 +83,8 @@ signals:
     QString takeOrderSign(QString);             //주문하기 버튼 클릭 시 주문자의 배송 주소를 불러오기 위해 호출되는 신호
     int updateAfter_upCount(QString, int);      //주문한 제품의 재고를 확인하기 위해 호출되는 신호
     void updateAfter_downCount(QString, int);   //주문한 수량이 감소, 주문 취소할 경우 해당 제품의 재고를 추가하기 위해 호출되는 신호
+    void clickedSelectButton();
+    void resetProductList();
 
     /*관리자 페이지*/
     void onlyStaff();                           //제품/회원 정보 관리 버튼 클릭 시 관리화면을 출력하기 위해 호출되는 신호

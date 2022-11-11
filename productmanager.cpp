@@ -235,6 +235,14 @@ void ProductManager::containProductInfo() {
     emit sendProductTable(productModel);    //쇼핑 화면으로 전달하기 위해 호출하는 SIGNAL
 }
 
+void ProductManager::selectProductInfo() {
+    emit sendSelectTable(productModel);
+}
+
+void ProductManager::resetProductInfo() {
+    emit sendResetTable(productModel);
+}
+
 //쇼핑에서 주문하기 or 주문변경 시 재고 확인 및 관리
 int ProductManager::updateAfterUpCount(QString name, int cnt) {
     int afterCount;
@@ -267,7 +275,7 @@ void ProductManager::updateAfterDownCount(QString name, int cnt) {
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("productCount");
 
-    checkProductCount = query->value(colIdx).toString();
+    while(query->next()) checkProductCount = query->value(colIdx).toString();
     afterCount = checkProductCount.toInt() + cnt;           //해당 제품에 대한 기존의 재고량에서 주문된 수량을 더한다.
 
     //상품의 재고량을 변경 이후의 값으로 조정한다.
