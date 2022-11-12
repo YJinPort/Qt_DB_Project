@@ -1,6 +1,5 @@
 #include "shoppingmanager.h"
 #include "ui_shoppingmanager.h"
-#include "shopping.h"
 #include "chattingform_client.h"
 #include <QInputDialog>
 #include <QMessageBox>
@@ -15,29 +14,6 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     ui(new Ui::ShoppingManager)
 {
     ui->setupUi(this);
-
-    QFile file("shoppinglist.txt");  //shoppinglist.txt라는 파일을 불러온다.
-
-    /*해당 파일을 텍스트 파일의 읽기 전용으로 열기*/
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;  //파일을 열기에 실패하면 return;
-
-    QTextStream in(&file);  //파일의 정보를 textStream에 저장할 준비를 한다.
-
-    /*저장된 정보가 끝날 때 까지 반복*/
-    while (!in.atEnd()) {
-        QString line = in.readLine();            //저장 되어있는 정보를 QString타입의 변수에 담는다.
-        QList<QString> row = line.split(", ");   //리스트 변수 row에 ", " 구분자를 제외한 데이터를 담는다.
-        if(row.size()) {    //리스트가 비어있지 않은 경우
-            int shoppingNumber = row[0].toInt(); //0번째 인덱스에 있는 정보를 int타입으로 변환하여 변수에 담는다.
-            int proPrice = row[2].toInt();       //2번째 인덱스에 있는 정보를 int타입으로 변환하여 변수에 담는다.
-            int proCount = row[3].toInt();       //3번째 인덱스에 있는 정보를 int타입으로 변환하여 변수에 담는다.
-
-            //해당 정보를 담은 객체를 생성한다.
-            Shopping* s = new Shopping(shoppingNumber, row[1], proPrice, proCount, row[4], row[5], row[6]);
-            shoppingList.insert(shoppingNumber, s);  //정보를 담은 객체를 주문 리스트에 저장한다.
-        }
-    }
-    file.close();   //shoppinglist.txt파일에 저장된 정보를 모두 회원 리스트에 저장했으므로 파일을 종료한다.
 
     QSqlDatabase sqlDB = QSqlDatabase::addDatabase("QSQLITE", "shoppingDatabase");
     sqlDB.setDatabaseName("shoppingList.db");
@@ -64,7 +40,6 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
 
     ui->orderListTableView->setModel(shoppingModel);
     ui->orderListTableView->setColumnHidden(6, true);
-    //ui->orderListTableView->resizeColumnsToContents();
     ui->orderListTableView->setColumnWidth(0, 85);
     ui->orderListTableView->setColumnWidth(1, 150);
     ui->orderListTableView->setColumnWidth(2, 100);
@@ -84,26 +59,6 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
 ShoppingManager::~ShoppingManager()
 {
     delete ui;
-
-    QFile file("shoppinglist.txt"); //shoppinglist.txt라는 파일을 불러온다(없을 경우 생성한다).
-
-    /*해당 파일을 텍스트 파일의 쓰기 전용으로 열기*/
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return; //파일을 열기에 실패하면 return;
-
-    QTextStream out(&file); //파일의 정보를 textStream으로 출력할 준비를 한다.
-
-    /*주문 리스트에 저장된 정보를 파일에 모두 저장하기 위한 반복문*/
-    for (const auto& v : shoppingList) {
-        Shopping* s = v;
-
-        /*주문 리스트에 대한 각 정보들을 , 를 구분자로 하여 파일(shoppinglist.txt)에 저장한다.*/
-        out << s->shoppingNumber() << ", " << s->getProductName() << ", ";
-        out << s->getProductPrice() << ", " << s->getProductCount() << ", ";
-        out << s->getProductType() << ", " << s->getClientAddress() << ", ";
-        out << s->getClientName() << "\n";
-    }
-
-    file.close( );  //shoppinglist.txt파일로 회원 리스트에 저장된 정보를 출력해 저장했으므로 파일을 종료한다.
 }
 
 //제품 리스트의 정보를 불러오기 위한 신호를 보내는 함수
@@ -149,12 +104,6 @@ void ShoppingManager::productViewReset(QSqlTableModel* resetModel) {
     resetModel->select();
 }
 
-//제품 정보의 리스트를 초기화하는 함수
-void ShoppingManager::dataClear() {
-    //쇼핑 화면의 제품 리스트 위젯을 비운다.
-    //ui->productInfoTreeWidget->clear();
-}
-
 //주문 번호를 자동으로 생성하여 전달해주기 위한 함수
 int ShoppingManager::shoppingNumber() {
     QString checkNumber;
@@ -172,15 +121,6 @@ int ShoppingManager::shoppingNumber() {
     qDebug() << "orderNumber: " << orderNumber;
     if(checkNumber == "") return 101;    //주문 정보 리스트에 저장된 정보가 없으면 1을 반환한다.
     else return ++orderNumber;               //얻은 키값에 1을 더한 값을 반환한다.
-//    int shoppingNumber;
-//    query->exec("SELECT orderNumber FROM shopping;");
-//    QSqlRecord rec = query->record();
-//    int colIdx = rec.indexOf("orderNumber");
-
-//    while(query->next()) shoppingNumber = query->value(colIdx).toInt();
-
-//    if(shoppingNumber == 0) return 101;
-//    else return ++shoppingNumber;
 }
 
 //회원가입 버튼 클릭 시 동작
@@ -272,9 +212,6 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
         proName = ui->productInfoTableView->currentIndex().sibling(ui->productInfoTableView->currentIndex().row(), 1).data().toString();
         proPrice = ui->productInfoTableView->currentIndex().sibling(ui->productInfoTableView->currentIndex().row(), 2).data().toInt();
         proType = ui->productInfoTableView->currentIndex().sibling(ui->productInfoTableView->currentIndex().row(), 4).data().toString();
-//        proName = ui->productInfoTreeWidget->currentItem()->text(1);
-//        proPrice = ui->productInfoTreeWidget->currentItem()->text(2).toInt();
-//        proType = ui->productInfoTreeWidget->currentItem()->text(4);
 
         /*숫자 이외의 문자가 inputDialog에 입력되었을 경우 0을 리턴한다.*/
         proCount = QInputDialog::getText(this, "Order", "주문 수량을 입력하세요.", onlyNum->Normal, NULL, &ok).toInt();
@@ -309,8 +246,6 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
 
         /*주문 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
-//        ui->orderListTableView->setModel(shoppingModel);
-//        dataLoad();
     }
     else return;
 }
@@ -395,8 +330,6 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
 
         /*변경 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
-//        ui->orderListTableView->setModel(shoppingModel);
-//        dataLoad();
     }
 }
 
@@ -420,8 +353,6 @@ void ShoppingManager::on_cancelOrderPushButton_clicked()
 
         /*삭제 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
-//        ui->orderListTableView->setModel(shoppingModel);
-//        dataLoad();
     }
     /*주문 내역 테이블 뷰의 주문한 내역을 선택하지 않았을 경우에 실행한다.*/
     else QMessageBox::warning(this, tr("취소 실패"), tr("취소하실 주문을 선택해주세요."));

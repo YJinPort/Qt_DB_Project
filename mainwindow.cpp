@@ -77,7 +77,6 @@ void MainWindow::openProductWindow() {
 }
 
 void MainWindow::quitProductWindow() {
-    shoppingManager->dataClear();
     shoppingManager->dataLoad();
     shoppingManager->setFocus();
 }

@@ -3,24 +3,26 @@
 #include <QMessageBox>
 #include <QSqlDatabase>
 #include <QSqlRecord>
-#include <QSqlError>
 
-//생성자 - clientlist.txt에 저장된 정보를 불러와 사용자리스트에 저장한다.
+//생성자 - 회원용 DB와 모델을 생성하고 형식에 맞게 지정한다.
 ClientManager::ClientManager(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ClientManager)
 {
     ui->setupUi(this);
 
+    /*회원용 DB 생성*/
     QSqlDatabase sqlDB = QSqlDatabase::addDatabase("QSQLITE", "clientDatabase");
     sqlDB.setDatabaseName("clientList.db");
     if(!sqlDB.open()) return;
 
+    /*회원 아이디를 기본키로 하는 회원 테이블 생성*/
     query = new QSqlQuery(sqlDB);
     query->exec("CREATE TABLE IF NOT EXISTS client(userID VARCHAR(30) Primary Key, "
                "userName VARCHAR(20) NOT NULL, userCall VARCHAR(13) NOT NULL, "
                "userAddress VARCHAR(100) NOT NULL, userGender VARCHAR(15));");
 
+    /*회원 테이블용 모델 생성 및 헤더 지정*/
     clientModel = new QSqlTableModel(this, sqlDB);
     clientModel->setTable("client");
     clientModel->select();
@@ -33,14 +35,15 @@ ClientManager::ClientManager(QWidget *parent) :
     setWindowTitle(tr("Client Side"));  //열리는 윈도우의 제목을 Client Side로 설정한다.
 }
 
-//소멸자 - 사용자리스트에 저장된 정보를 clientlist.txt에 저장한다.
+//소멸자 - 생성한 ui 객체를 삭제한다.
 ClientManager::~ClientManager()
 {
     delete ui;
 }
 
-void ClientManager::loadDBInProduct() {
-    emit sendClientTable(clientModel);
+//관리자 페이지에 회원 정보를 띄우기 위한 함수
+void ClientManager::loadDBInManager() {
+    emit sendClientTable(clientModel);  //회원 정보의 전달을 위해 호출되는 신호
 }
 
 //회원 등록 버튼 클릭 시 동작
@@ -65,17 +68,22 @@ void ClientManager::on_clientRegisterPushButton_clicked()
         address = ui->userAddressLineEdit->text();
         gender = ui->userGenderComboBox->currentText();
 
+        /*회원가입 시 입력한 아이디가 회원 테이블에 저장 되어있는지 검색한다.*/
         query->exec("SELECT userID FROM client WHERE userID = '" + userId + "';");
         QSqlRecord rec = query->record();
         int colIdx = rec.indexOf("userID");
 
+        //회원 테이블에 있는 회원 아이디를 checkUserID변수에 담는다.
         while(query->next()) checkUserID = query->value(colIdx).toString();
 
+        //등록하려는 아이디가 이미 저장 되어있는 경우(ID중복)
         if(checkUserID != "") {
             QMessageBox::information(this, tr("가입 실패"), tr("이미 등록된 아이디입니다."));
             ui->userIdLineEdit->clear();
         }
+        //등록하려는 아이디가 저장되이 있지 않은 경우(가입 가능)
         else {
+            //회원가입 시 입력한 값으로 회원 가입을 진행한다.
             query->exec("INSERT INTO client VALUES('" + userId + "', '" + name + "', '" +
                                               call + "', '" + address + "', '" + gender + "');");
 
@@ -90,10 +98,7 @@ void ClientManager::on_clientRegisterPushButton_clicked()
 
             emit join();    //쇼핑 화면으로 돌아가기 위해 SIGNAL 신호를 보낸다.
         }
-
     }
-
-
 }
 
 //등록 취소 버튼 클릭 시 동작
@@ -115,6 +120,7 @@ void ClientManager::updateClientInfo(QStringList updateList) {
     bool checkUser = true;
     QString checkUserID;
 
+    /**/
     query->exec("SELECT userID FROM client WHERE userID = '" + updateList[0] + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
@@ -135,7 +141,7 @@ void ClientManager::updateClientInfo(QStringList updateList) {
 
     if(checkUser) QMessageBox::warning(this, tr("수정 실패"), tr("회원 아이디를 확인해주세요."));   //등록된 회원 아이디가 아니기 때문에 경고 메시지를 띄운다.
     /*관리자 페이지의 위젯 리스트에 변경된 회원 정보를 등록 시작*/
-    else loadDBInProduct();
+    else loadDBInManager();
 }
 
 //관리자 페이지에서 회원 삭제 시 등록된 회원을 삭제하기 위한 SLOT 함수
@@ -158,12 +164,12 @@ void ClientManager::deleteClientInfo(QString userId) {
     }
 
     if(checkUser) QMessageBox::information(this, tr("삭제 실패"), tr("회원 아이디를 확인해주세요."));   //등록된 회원 아이디가 아니기 때문에 경고 메시지를 띄운다.
-    else loadDBInProduct();
+    else loadDBInManager();
 }
 
 //쇼핑 화면에서 관리자 페이지로 이동 버튼 클릭 시 회원 정보를 담아서 보내기 위한 SLOT 함수
 void ClientManager::containClientInfo() {
-    loadDBInProduct();
+    loadDBInManager();
 }
 
 //쇼핑 화면에서 로그인 시도 시 아이디가 등록되어 있는지 체크하는 SLOT 함수

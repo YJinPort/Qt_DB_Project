@@ -21,7 +21,6 @@ public:
     ~ShoppingManager();                                     //소멸자 - 쇼핑리스트에 저장된 정보를 shoppinglist.txt에 저장한다.
 
     void dataLoad();                        //제품 정보의 리스트를 불러오기 위한 신호를 보내는 함수
-    void dataClear();                       //제품 정보의 리스트를 초기화하는 함수
     void loadShoppingWidget(QString);       //로그인 성공 시 주문 내역 리스트에 해당 사용자가 주문한 리스트 출력
 
 private slots:

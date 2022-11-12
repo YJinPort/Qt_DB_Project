@@ -49,6 +49,7 @@ private:
     qint64 totalSize;                   //전체 파일의 크기
     QByteArray outBlock;                //파일 전송을 위한 데이터
     bool isSent;                        //파일 서버에 대한 접속 확인
+    LogData *logData;                   //메시지 전송에 대한 로그를 남기기 위한 멤버 변수
 
     void closeEvent(QCloseEvent*) override;     //윈도우Title 창의 X를 눌러 종료하였을 경우 처리하는 이벤트 핸들러
 };

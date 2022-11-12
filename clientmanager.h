@@ -40,10 +40,10 @@ private slots:
 private:
     Ui::ClientManager *ui;
 
-    QSqlQuery *query;
-    QSqlTableModel *clientModel;
+    QSqlQuery *query;               //데이터 조작을 위한 SQL쿼리 사용을 위한 멤버 변수
+    QSqlTableModel *clientModel;    //회원 데이터를 저장하기 위한 모델
 
-    void loadDBInProduct();
+    void loadDBInManager();         //관리자 페이지에 회원 정보를 띄우기 위한 멤버 함수
 
 signals:
     /*회원 가입*/
@@ -51,8 +51,7 @@ signals:
     void cancellation();                    //등록 취소 버튼 클릭 시 쇼핑 화면을 출력하기 위해 호출되는 신호
 
     /*관리자 페이지*/
-    //void sendClientInfo(Client*);           //회원 정보 수정, 삭제 시 관리자 페이지에 사용자 정보를 보내기 위해 호출되는 신호
-    void sendClientTable(QSqlTableModel*);
+    void sendClientTable(QSqlTableModel*);  //회원 정보의 전달을 위해 호출되는 신호
 
     /*쇼핑 화면 로그인*/
     void successLogin(QString);             //쇼핑 화면에서 로그인 시도가 성공 시 해당 사용자의 이름을 보내기 위해 호출되는 신호
@@ -60,7 +59,7 @@ signals:
 
     /*채팅 프로그램*/
     void sendToServer(QString, QString);    //서버에 보내줄 사용자의 ID와 이름을 보내주기 위해 호출되는 신호
-    void sendNameToServer(QStringList);
+    void sendNameToServer(QStringList);     //서버의 콤보박스에 담길 회원들의 이름 정보들을 보내주기 위해 호출되는 신호
 };
 
 #endif // CLIENTMANAGER_H
