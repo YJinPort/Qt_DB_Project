@@ -16,8 +16,8 @@ class ClientManager : public QWidget
     Q_OBJECT
 
 public:
-    explicit ClientManager(QWidget *parent = nullptr);  //생성자 - clientlist.txt에 저장된 정보를 불러와 사용자리스트에 저장한다.
-    ~ClientManager();                                   //소멸자 - 사용자리스트에 저장된 정보를 clientlist.txt에 저장한다.
+    explicit ClientManager(QWidget *parent = nullptr);  //생성자 - 회원용 DB와 모델을 생성하고 형식에 맞게 지정한다.
+    ~ClientManager();                                   //소멸자 - 생성한 객체를 삭제한다.
 
 private slots:
     /*---회원 가입 화면에 생성된 버튼을 클릭했을 경우 실행하는 함수---*/
@@ -35,7 +35,7 @@ private slots:
     QString findAddressForOrder(QString);   //쇼핑 화면에서 주문하기 버튼 클릭 시 주문자의 주소 정보를 찾아주기 위한 SLOT 함수
     int deleteId_List(QString);             //쇼핑 화면에서 회원 탈퇴 버튼 클릭 시 해당 아이디 검색 후 List에서 삭제하기 위한 SLOT 함수
     void serverOpenFromShopping();          //쇼핑 화면에서 서버오픈 시 사용자의 ID와 이름을 전달해주기 위한 SLOT 함수
-    void sendNameListToServer();
+    void sendNameListToServer();            //쇼핑화면에서 서버 오픈 시 콤보박스에 등록될 사용자의 이름을 보내주기 위한 SLOT 함수
 
 private:
     Ui::ClientManager *ui;

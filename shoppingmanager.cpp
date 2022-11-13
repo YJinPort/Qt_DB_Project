@@ -20,6 +20,7 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     if(!sqlDB.open()) return;
 
     query = new QSqlQuery(sqlDB);
+
     query->exec("CREATE TABLE IF NOT EXISTS shopping(orderNumber INTEGER Primary Key, "
                "orderProName VARCHAR(30) NOT NULL, orderProPrice INTEGER NOT NULL, "
                "orderProCount INTEGER NOT NULL, orderProType VARCHAR(20), "
@@ -71,7 +72,6 @@ void ShoppingManager::receivedProductInfo(QSqlTableModel *productModel) {
     //관리자 페이지에서 받아온 제품 정보를 쇼핑 화면의 제품 리스트 위젯에 등록
     productModel->select();
     ui->productInfoTableView->setModel(productModel);
-    //ui->productInfoTableView->resizeColumnsToContents();
     ui->productInfoTableView->setColumnWidth(0, 85);
     ui->productInfoTableView->setColumnWidth(1, 210);
     ui->productInfoTableView->setColumnWidth(2, 120);
@@ -90,6 +90,8 @@ void ShoppingManager::viewSelectProductList(QSqlTableModel* selectModel) {
     selectModel->setFilter("(productName LIKE '%" + ui->selectLineEdit->text() + "%') "
                            "or (productType LIKE '%" + ui->selectLineEdit->text() + "%');");
     selectModel->select();
+
+    ui->selectLineEdit->clear();
 }
 
 //검색 초기화 버튼 클릭 시 동작
@@ -99,9 +101,11 @@ void ShoppingManager::on_resetPushButton_clicked()
 }
 
 //제품 목록을 검색 전 상태로 초기화하는 함수
-void ShoppingManager::productViewReset(QSqlTableModel* resetModel) {
-    resetModel->setFilter("");
-    resetModel->select();
+void ShoppingManager::productViewReset(QSqlTableModel* selectModel) {
+    selectModel->setFilter("");
+    selectModel->select();
+
+    ui->selectLineEdit->clear();
 }
 
 //주문 번호를 자동으로 생성하여 전달해주기 위한 함수
@@ -191,7 +195,7 @@ void ShoppingManager::failedLoginCheck() {
 void ShoppingManager::on_takeOrderPushButton_clicked()
 {
     int orderNumber, proPrice, proCount, checkCount, totPrice;
-    QString proName, proType, address;
+    QString proName, proType, address, userID;
     QString clientName;
     QList<QString> labelText;   //로그인한 아이디의 회원 이름을 구하기 위해 사용한 List변수
     bool ok;
@@ -240,8 +244,7 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
         query->exec("INSERT INTO shopping VALUES(" + QString::number(orderNumber) + ", '" + proName + "', " +
                     QString::number(proPrice) + ", " + QString::number(proCount) + ", '" + proType + "', " +
                     QString::number(totPrice) + ", '" + clientName + "', '" + address + "');");
-        qDebug() << query->lastError();
-        qDebug() << orderNumber;
+
         QMessageBox::information(this, tr("주문 성공"), tr("주문이 완료되었습니다."));
 
         /*주문 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/

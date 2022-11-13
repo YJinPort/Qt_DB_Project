@@ -35,10 +35,19 @@ ClientManager::ClientManager(QWidget *parent) :
     setWindowTitle(tr("Client Side"));  //열리는 윈도우의 제목을 Client Side로 설정한다.
 }
 
-//소멸자 - 생성한 ui 객체를 삭제한다.
+//소멸자 - 생성한 객체를 삭제한다.
 ClientManager::~ClientManager()
 {
     delete ui;
+
+    /*생성한 DB 객체 삭제*/
+    QSqlDatabase db = QSqlDatabase::database("clientDatabase");
+    if(db.isOpen()) {
+        clientModel->submitAll();
+        delete clientModel;
+        db.commit();
+        db.close();
+    }
 }
 
 //관리자 페이지에 회원 정보를 띄우기 위한 함수
@@ -120,13 +129,14 @@ void ClientManager::updateClientInfo(QStringList updateList) {
     bool checkUser = true;
     QString checkUserID;
 
-    /**/
+    /*수정할 회원의 아이디를 검색한다.*/
     query->exec("SELECT userID FROM client WHERE userID = '" + updateList[0] + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
 
     while(query->next()) checkUserID = query->value(colIdx).toString();
 
+    //회원 아이디가 등록되어 있을 경우 변경할 값으로 회원 정보를 변경한다.
     if(checkUserID != "") {
         query->exec("UPDATE client SET userName = '" + updateList[1] + "'"
                         ", userCall = '" + updateList[2] + "'"
@@ -140,7 +150,7 @@ void ClientManager::updateClientInfo(QStringList updateList) {
     }
 
     if(checkUser) QMessageBox::warning(this, tr("수정 실패"), tr("회원 아이디를 확인해주세요."));   //등록된 회원 아이디가 아니기 때문에 경고 메시지를 띄운다.
-    /*관리자 페이지의 위젯 리스트에 변경된 회원 정보를 등록 시작*/
+    /*관리자 페이지의 위젯 리스트에 변경된 회원 정보를 출력*/
     else loadDBInManager();
 }
 
@@ -149,12 +159,14 @@ void ClientManager::deleteClientInfo(QString userId) {
     bool checkUser = true;
     QString checkUserID;
 
+    /*삭제할 회원의 아이디를 검색한다.*/
     query->exec("SELECT userID FROM client WHERE userID = '" + userId + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
 
     while(query->next()) checkUserID = query->value(colIdx).toString();
 
+    //회원 아이디가 등록되어 있을 경우 해당 회원을 삭제한다.
     if(checkUserID != "") {
         query->exec("DELETE FROM client WHERE userID = '" + userId + "';");
 
@@ -164,11 +176,13 @@ void ClientManager::deleteClientInfo(QString userId) {
     }
 
     if(checkUser) QMessageBox::information(this, tr("삭제 실패"), tr("회원 아이디를 확인해주세요."));   //등록된 회원 아이디가 아니기 때문에 경고 메시지를 띄운다.
+    /*관리자 페이지의 위젯 리스트에 삭제 후 회원 정보를 출력*/
     else loadDBInManager();
 }
 
 //쇼핑 화면에서 관리자 페이지로 이동 버튼 클릭 시 회원 정보를 담아서 보내기 위한 SLOT 함수
 void ClientManager::containClientInfo() {
+    /*관리자 페이지의 위젯 리스트에 회원 정보를 출력*/
     loadDBInManager();
 }
 
@@ -176,6 +190,7 @@ void ClientManager::containClientInfo() {
 void ClientManager::checkLoginId(QString ID) {
     QString userName, checkUserID;
 
+    /*회원 아이디가 등록되어 있는지 검색한다.*/
     query->exec("SELECT userID, userName FROM client WHERE userID = '" + ID + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
@@ -186,7 +201,7 @@ void ClientManager::checkLoginId(QString ID) {
         userName = query->value(nameIdx).toString();
     }
 
-    if(checkUserID != "") emit successLogin(userName);
+    if(checkUserID != "") emit successLogin(userName);  //아이디가 등록되어 있으므로 로그인 성공을 알리는 SIGNAL을 보낸다.
     else emit failedLogin();       //등록된 아이디가 아니므로 로그인 실패를 알리는 SIGNAL을 보낸다.
 }
 
@@ -194,6 +209,7 @@ void ClientManager::checkLoginId(QString ID) {
 QString ClientManager::findAddressForOrder(QString name) {
     QString orderAddress;
 
+    /*회원의 이름으로 해당 회원의 배송 주소를 검색한다.*/
     query->exec("SELECT userAddress FROM client WHERE userName = '" + name + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userAddress");
@@ -208,13 +224,14 @@ int ClientManager::deleteId_List(QString ID) {
     int cnt = 0;
     QString checkUserID;
 
+    /*회원 아이디가 등록되어 있는지 검색한다.*/
     query->exec("SELECT userID FROM client WHERE userID = '" + ID + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
 
     while(query->next()) checkUserID = query->value(colIdx).toString();
 
-    if(checkUserID != "") cnt++;
+    if(checkUserID != "") cnt++; //회원 아이디가 등록되어 있을 경우 cnt값을 1 증가시킨다.
 
     return cnt; //삭제 완료의 성공 여부를 알리는 cnt값을 반환한다.
 }
