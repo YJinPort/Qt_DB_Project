@@ -77,35 +77,51 @@ void ClientManager::on_clientRegisterPushButton_clicked()
         address = ui->userAddressLineEdit->text();
         gender = ui->userGenderComboBox->currentText();
 
-        /*회원가입 시 입력한 아이디가 회원 테이블에 저장 되어있는지 검색한다.*/
-        query->exec("SELECT userID FROM client WHERE userID = '" + userId + "';");
-        QSqlRecord rec = query->record();
-        int colIdx = rec.indexOf("userID");
+        if(ui->clientRegisterPushButton->text() == "저장하기") {
+            query->exec("UPDATE client SET userName = '" + name + "'"
+                            ", userCall = '" + call + "'"
+                            ", userAddress = '" + address + "'"
+                            ", userGender = '" + gender + "' "
+                        "WHERE userID = '" + userId + "';");
 
-        //회원 테이블에 있는 회원 아이디를 checkUserID변수에 담는다.
-        while(query->next()) checkUserID = query->value(colIdx).toString();
-
-        //등록하려는 아이디가 이미 저장 되어있는 경우(ID중복)
-        if(checkUserID != "") {
-            QMessageBox::information(this, tr("가입 실패"), tr("이미 등록된 아이디입니다."));
-            ui->userIdLineEdit->clear();
-        }
-        //등록하려는 아이디가 저장되이 있지 않은 경우(가입 가능)
-        else {
-            //회원가입 시 입력한 값으로 회원 가입을 진행한다.
-            query->exec("INSERT INTO client VALUES('" + userId + "', '" + name + "', '" +
-                                              call + "', '" + address + "', '" + gender + "');");
-
-            /*현재 입력 되어있는 LineEdit를 비우고 체크 되어있는 CheckBox를 체크 해제시킨다*/
             ui->agreeClientInfoCheckBox->setChecked(false);
             ui->agreeAddressCheckBox->setChecked(false);
 
-            ui->userIdLineEdit->clear();
-            ui->userNameLineEdit->clear();
-            ui->userCallLineEdit->clear();
-            ui->userAddressLineEdit->clear();
+            //마이 페이지에서 회원의 정보를 변경한 후 쇼핑 화면 라벨을 변경하기 위해 보내는 SIGNAL
+            emit updateInMyPage(name);
+            emit join();                //쇼핑 화면으로 돌아가기 위해 SIGNAL 신호를 보낸다.
+        }
+        else {
+            /*회원가입 시 입력한 아이디가 회원 테이블에 저장 되어있는지 검색한다.*/
+            query->exec("SELECT userID FROM client WHERE userID = '" + userId + "';");
+            QSqlRecord rec = query->record();
+            int colIdx = rec.indexOf("userID");
 
-            emit join();    //쇼핑 화면으로 돌아가기 위해 SIGNAL 신호를 보낸다.
+            //회원 테이블에 있는 회원 아이디를 checkUserID변수에 담는다.
+            while(query->next()) checkUserID = query->value(colIdx).toString();
+
+            //등록하려는 아이디가 이미 저장 되어있는 경우(ID중복)
+            if(checkUserID != "") {
+                QMessageBox::information(this, tr("가입 실패"), tr("이미 등록된 아이디입니다."));
+                ui->userIdLineEdit->clear();
+            }
+            //등록하려는 아이디가 저장되이 있지 않은 경우(가입 가능)
+            else {
+                //회원가입 시 입력한 값으로 회원 가입을 진행한다.
+                query->exec("INSERT INTO client VALUES('" + userId + "', '" + name + "', '" +
+                                                  call + "', '" + address + "', '" + gender + "');");
+
+                /*현재 입력 되어있는 LineEdit를 비우고 체크 되어있는 CheckBox를 체크 해제시킨다*/
+                ui->agreeClientInfoCheckBox->setChecked(false);
+                ui->agreeAddressCheckBox->setChecked(false);
+
+                ui->userIdLineEdit->clear();
+                ui->userNameLineEdit->clear();
+                ui->userCallLineEdit->clear();
+                ui->userAddressLineEdit->clear();
+
+                emit join();    //쇼핑 화면으로 돌아가기 위해 SIGNAL 신호를 보낸다.
+            }
         }
     }
 }
@@ -201,16 +217,51 @@ void ClientManager::checkLoginId(QString ID) {
         userName = query->value(nameIdx).toString();
     }
 
-    if(checkUserID != "") emit successLogin(userName);  //아이디가 등록되어 있으므로 로그인 성공을 알리는 SIGNAL을 보낸다.
+    if(checkUserID != "") emit successLogin(userName, checkUserID);  //아이디가 등록되어 있으므로 로그인 성공을 알리는 SIGNAL을 보낸다.
     else emit failedLogin();       //등록된 아이디가 아니므로 로그인 실패를 알리는 SIGNAL을 보낸다.
 }
 
+//쇼핑 화면에서 마이 페이지 버튼 클릭 시 실행
+void ClientManager::viewMyPage(QString userID) {
+    QString gender;
+
+    /*로그인한 회원의 아이디로 해당 회원의 모든 정보를 검색한다.*/
+    query->exec("SELECT * FROM client WHERE userID = '" + userID + "';");
+    QSqlRecord rec = query->record();
+    int colID = rec.indexOf("userID");
+    int colName = rec.indexOf("userName");
+    int colCall = rec.indexOf("userCall");
+    int colAddress = rec.indexOf("userAddress");
+    int colGender = rec.indexOf("userGender");
+
+    /*검색한 값으로 마이 페이지의 LineEdit을 채운다.*/
+    while(query->next()) {
+        ui->userIdLineEdit->setText(query->value(colID).toString());
+        ui->userNameLineEdit->setText(query->value(colName).toString());
+        ui->userCallLineEdit->setText(query->value(colCall).toString());
+        ui->userAddressLineEdit->setText(query->value(colAddress).toString());
+        gender = query->value(colGender).toString();
+    }
+
+    /*성별에 따라 콤보 박스의 인덱스 값을 결정한다.*/
+    if(gender == "Man") ui->userGenderComboBox->setCurrentIndex(0);
+    else ui->userGenderComboBox->setCurrentIndex(1);
+
+    //아이디의 경우 기본키이므로 변경 불가하도록 읽기전용으로 설정한다.
+    ui->userIdLineEdit->setReadOnly(true);
+
+    /*마이 페이지의 라벨과 버튼의 이름을 재지정한다.*/
+    ui->newClientLabel->setText("마이 페이지");
+    ui->clientRegisterPushButton->setText("저장하기");
+    ui->cancelRegisterPushButton->setText("돌아가기");
+}
+
 //쇼핑 화면에서 주문하기 버튼 클릭 시 주문자의 주소 정보를 찾아주기 위한 SLOT 함수
-QString ClientManager::findAddressForOrder(QString name) {
+QString ClientManager::findAddressForOrder(QString userID) {
     QString orderAddress;
 
     /*회원의 이름으로 해당 회원의 배송 주소를 검색한다.*/
-    query->exec("SELECT userAddress FROM client WHERE userName = '" + name + "';");
+    query->exec("SELECT userAddress FROM client WHERE userID = '" + userID + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userAddress");
 
@@ -231,7 +282,11 @@ int ClientManager::deleteId_List(QString ID) {
 
     while(query->next()) checkUserID = query->value(colIdx).toString();
 
-    if(checkUserID != "") cnt++; //회원 아이디가 등록되어 있을 경우 cnt값을 1 증가시킨다.
+    if(checkUserID != "") {
+        cnt++; //회원 아이디가 등록되어 있을 경우 cnt값을 1 증가시킨다.
+        query->exec("DELETE FROM client WHERE userID = '" + ID + "';");
+        clientModel->select();
+    }
 
     return cnt; //삭제 완료의 성공 여부를 알리는 cnt값을 반환한다.
 }
@@ -240,6 +295,7 @@ int ClientManager::deleteId_List(QString ID) {
 void ClientManager::serverOpenFromShopping() {
     QString sendServerId, sendSeverName;
 
+    /*등록 되어있는 회원의 아이디와 이름을 검색한다.*/
     query->exec("SELECT userID, userName FROM client;");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userID");
@@ -248,7 +304,7 @@ void ClientManager::serverOpenFromShopping() {
     while(query->next()) {
         sendServerId = query->value(colIdx).toString();
         sendSeverName = query->value(nameIdx).toString();
-        emit sendToServer(sendServerId, sendSeverName);
+        emit sendToServer(sendServerId, sendSeverName);     //회원의 아이디와 이름을 보내주기 위해 호출하는 SIGNAL
     }
 }
 
@@ -256,6 +312,7 @@ void ClientManager::serverOpenFromShopping() {
 void ClientManager::sendNameListToServer() {
     QStringList nameList;
 
+    /*등록 되어있는 회원의 이름을 검색한다.*/
     query->exec("SELECT userName FROM client;");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("userName");

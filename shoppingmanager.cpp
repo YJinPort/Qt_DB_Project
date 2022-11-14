@@ -8,25 +8,27 @@
 #include <QSqlRecord>
 #include <QSqlError>
 
-//생성자 - shoppinglist.txt에 저장된 정보를 불러와 쇼핑리스트에 저장한다.
+//생성자 - 주문용 DB와 모델을 생성하고 형식에 맞게 지정한다.
 ShoppingManager::ShoppingManager(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ShoppingManager)
 {
     ui->setupUi(this);
 
-    QSqlDatabase sqlDB = QSqlDatabase::addDatabase("QSQLITE", "shoppingDatabase");
+    /*주문용 DB 생성*/
+    sqlDB = QSqlDatabase::addDatabase("QSQLITE", "shoppingDatabase");
     sqlDB.setDatabaseName("shoppingList.db");
     if(!sqlDB.open()) return;
 
+    /*주문 번호를 기본키로 하는 제품 테이블 생성*/
     query = new QSqlQuery(sqlDB);
-
     query->exec("CREATE TABLE IF NOT EXISTS shopping(orderNumber INTEGER Primary Key, "
-               "orderProName VARCHAR(30) NOT NULL, orderProPrice INTEGER NOT NULL, "
-               "orderProCount INTEGER NOT NULL, orderProType VARCHAR(20), "
-               "orderTotPrice INTEGER NOT NULL, orderUserName VARCHAR(20), "
-               "orderAddress VARCHAR(100));");
+                "orderProName VARCHAR(30) NOT NULL, orderProPrice INTEGER NOT NULL, "
+                "orderProCount INTEGER NOT NULL, orderProType VARCHAR(20), "
+                "orderTotPrice INTEGER NOT NULL, orderUserID VARCHAR(30), "
+                "orderAddress VARCHAR(100));");
 
+    /*주문 테이블용 모델 생성 및 헤더 지정*/
     shoppingModel = new QSqlTableModel(this, sqlDB);
     shoppingModel->setTable("shopping");
     shoppingModel->select();
@@ -36,11 +38,13 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     shoppingModel->setHeaderData(3, Qt::Horizontal, QObject::tr("주문 수량"));
     shoppingModel->setHeaderData(4, Qt::Horizontal, QObject::tr("제품 종류"));
     shoppingModel->setHeaderData(5, Qt::Horizontal, QObject::tr("총 가격"));
-    shoppingModel->setHeaderData(6, Qt::Horizontal, QObject::tr("회원 이름"));
+    shoppingModel->setHeaderData(6, Qt::Horizontal, QObject::tr("회원 아이디"));
     shoppingModel->setHeaderData(7, Qt::Horizontal, QObject::tr("배송 주소"));
 
-    ui->orderListTableView->setModel(shoppingModel);
-    ui->orderListTableView->setColumnHidden(6, true);
+    ui->orderListTableView->setModel(shoppingModel);    //생성한 모델을 테이블 뷰로 출력하기 위해 지정
+    ui->orderListTableView->setColumnHidden(6, true);   //불필요한 정보를 출력하지 않음
+
+    /*각 컬럼의 길이 지정*/
     ui->orderListTableView->setColumnWidth(0, 85);
     ui->orderListTableView->setColumnWidth(1, 150);
     ui->orderListTableView->setColumnWidth(2, 100);
@@ -49,6 +53,7 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     ui->orderListTableView->setColumnWidth(5, 100);
     ui->orderListTableView->setColumnWidth(7, 200);
 
+    /*사용자에게 전체 주문 내역을 공개하지 않기 위해 로그인 전까지 숨김*/
     query->exec("SELECT orderNumber FROM shopping;");
     while(query->next()) rowHiddenCount++;
     for(int i = 0; i < rowHiddenCount; i++) ui->orderListTableView->setRowHidden(i, true);
@@ -56,10 +61,19 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     setWindowTitle(tr("Shopping Side"));    //열리는 윈도우의 제목을 Shopping Side로 설정한다.
 }
 
-//소멸자 - 쇼핑리스트에 저장된 정보를 shoppinglist.txt에 저장한다.
+//소멸자 - 생성한 객체를 삭제한다.
 ShoppingManager::~ShoppingManager()
 {
     delete ui;
+
+    /*생성한 DB 객체 삭제*/
+    QSqlDatabase db = QSqlDatabase::database("shoppingDatabase");
+    if(db.isOpen()) {
+        shoppingModel->submitAll();
+        delete shoppingModel;
+        db.commit();
+        db.close();
+    }
 }
 
 //제품 리스트의 정보를 불러오기 위한 신호를 보내는 함수
@@ -71,7 +85,9 @@ void ShoppingManager::dataLoad() {
 void ShoppingManager::receivedProductInfo(QSqlTableModel *productModel) {
     //관리자 페이지에서 받아온 제품 정보를 쇼핑 화면의 제품 리스트 위젯에 등록
     productModel->select();
-    ui->productInfoTableView->setModel(productModel);
+    ui->productInfoTableView->setModel(productModel);   //생성한 모델을 테이블 뷰로 출력하기 위해 지정
+
+    /*각 컬럼의 길이 지정*/
     ui->productInfoTableView->setColumnWidth(0, 85);
     ui->productInfoTableView->setColumnWidth(1, 210);
     ui->productInfoTableView->setColumnWidth(2, 120);
@@ -82,63 +98,72 @@ void ShoppingManager::receivedProductInfo(QSqlTableModel *productModel) {
 //제품 검색 버튼 클릭 시 동작
 void ShoppingManager::on_selectPushButton_clicked()
 {
-    emit clickedSelectButton();
+    emit clickedSelectButton(); //제품 검색에 필요한 정보를 가져오기 위해 호출하는 SIGNAL
 }
 
-//검색한 제품을 출력하는 함수
+//검색한 제품을 출력하는 SLOT 함수
 void ShoppingManager::viewSelectProductList(QSqlTableModel* selectModel) {
+    /*검색 LineEdit에 입력된 정보가 포함된 제품을 검색한다.*/
     selectModel->setFilter("(productName LIKE '%" + ui->selectLineEdit->text() + "%') "
                            "or (productType LIKE '%" + ui->selectLineEdit->text() + "%');");
     selectModel->select();
 
-    ui->selectLineEdit->clear();
+    ui->selectLineEdit->clear();    //검색 후 검색 LineEdit를 비운다.
 }
 
 //검색 초기화 버튼 클릭 시 동작
 void ShoppingManager::on_resetPushButton_clicked()
 {
-    emit resetProductList();
+    emit resetProductList();  //검색한 제품리스트를 초기화 하기 위해 호출하는 SIGNAL
 }
 
-//제품 목록을 검색 전 상태로 초기화하는 함수
+//제품 목록을 검색 전 상태로 초기화하는 SLOT 함수
 void ShoppingManager::productViewReset(QSqlTableModel* selectModel) {
+    /*제품 리스트 출력의 조건을 제거한다.(전체 리스트를 출력하게 한다.)*/
     selectModel->setFilter("");
     selectModel->select();
 
-    ui->selectLineEdit->clear();
+    ui->selectLineEdit->clear();    //검색 LineEdit를 비운다.
 }
 
 //주문 번호를 자동으로 생성하여 전달해주기 위한 함수
 int ShoppingManager::shoppingNumber() {
     QString checkNumber;
     int orderNumber;
+
+    /*주문 시 필요한 주문 번호를 구하기 위해 전체 주문 번호를 검색한다.*/
     query->exec("SELECT orderNumber FROM shopping;");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("orderNumber");
-    qDebug() << "colIdx: " << colIdx;
-    while(query->next()) {
-        checkNumber = query->value(colIdx).toString();
-        qDebug() << "checkNumber: " << checkNumber;
-    }
 
+    //마지막 주문 번호를 구한다.
+    while(query->next()) checkNumber = query->value(colIdx).toString();
     orderNumber = checkNumber.toInt();
-    qDebug() << "orderNumber: " << orderNumber;
+
     if(checkNumber == "") return 101;    //주문 정보 리스트에 저장된 정보가 없으면 1을 반환한다.
-    else return ++orderNumber;               //얻은 키값에 1을 더한 값을 반환한다.
+    else return ++orderNumber;           //얻은 키값에 1을 더한 값을 반환한다.
 }
 
 //회원가입 버튼 클릭 시 동작
 void ShoppingManager::on_addNewClientPushButton_clicked()
 {
-    emit newClient();   //회원 가입 화면을 열기 위해 호출하는 SIGNAL
+    //'회원가입'버튼이 '마이 페이지'버튼으로 변경된 경우
+    if(ui->addNewClientPushButton->text() == "마이 페이지") {
+        emit myPage(currentUserID); //회원가입 버튼 이름이 '마이 페이지'일 경우 호출되는 신호
+    }
+    //'회원가입'버튼일 경우
+    else emit newClient();   //회원 가입 화면을 열기 위해 호출하는 SIGNAL
 }
 
 //회원탈퇴 버튼 클릭 시 동작
 void ShoppingManager::on_removeClientPushButton_clicked()
 {
     bool questionCheck, inputUserId;
-    int checkUserId;
+    int orderIdx, nameIdx, countIdx;
+    int checkUserId, eraseNum, eraseCount;
     QString question, userId;
+    QString eraseName;
+    QSqlQuery *deleteQuery = new QSqlQuery(sqlDB);
 
    /*입력값의 예외처리를 위한 do-while문*/
     do {
@@ -155,33 +180,79 @@ void ShoppingManager::on_removeClientPushButton_clicked()
             checkUserId = emit deleteClient(userId);    //입력한 회원 아이디 값이 회원 정보 리스트에 등록되어 있는지 확인하기 위해 호출하는 SIGNAL
 
             //SIGNAL이 결과 여부에 따라 출력하는 메시지를 구분한다.
-            if(checkUserId <= 0) QMessageBox::warning(this, tr("탈퇴 실패"), tr("존재하지 않는 아이디 입니다."));
+            if(checkUserId <= 0) {
+                QMessageBox::warning(this, tr("탈퇴 실패"), tr("존재하지 않는 아이디 입니다."));
+                return;
+            }
             else QMessageBox::warning(this, tr("탈퇴 성공"), tr("회원 탈퇴되었습니다."));
         } while(checkUserId <= 0);
+
+        query->exec("SELECT orderNumber, orderProName, orderProCount FROM shopping "
+                    "WHERE orderUserID = '" + userId + "';");
+        QSqlRecord rec = query->record();
+        orderIdx = rec.indexOf("orderNumber");
+        nameIdx = rec.indexOf("orderProName");
+        countIdx = rec.indexOf("orderProCount");
+
+        while(query->next()) {
+            eraseNum = query->value(orderIdx).toInt();
+            eraseName = query->value(nameIdx).toString();
+            eraseCount = query->value(countIdx).toInt();
+            qDebug() << eraseNum << eraseName << eraseCount << "\n";
+            emit updateAfter_downCount(eraseName, eraseCount);  //제품의 재고 관리를 위해 호출하는 SIGNAL
+            deleteQuery->exec("DELETE FROM shopping WHERE orderNumber = " + QString::number(eraseNum) + ";");
+            qDebug() << deleteQuery->lastError();
+            /*삭제 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
+            shoppingModel->select();
+        }
+
+        ui->orderListLabel->setText("주문 내역");           //주문하기 버튼의 예외처리를 위해 재지정한다.
+
+
     }
 }
 
 //로그인 버튼 클릭 시 동작
 void ShoppingManager::on_shoppingLoginPushButton_clicked()
 {
-    emit login(ui->userIdLoginLineEdit->text());    //입력한 로그인 아이디가 clientList에 등록되어 있는지 확인
-    ui->userIdLoginLineEdit->clear();               //로그인할 아이디를 입력한 LineEdit를 비운다.
+    //로그인 버튼일 경우
+    if(ui->shoppingLoginPushButton->text() == "로그인") {
+        emit login(ui->userIdLoginLineEdit->text());    //입력한 로그인 아이디가 clientList에 등록되어 있는지 확인
+        ui->userIdLoginLineEdit->clear();               //로그인할 아이디를 입력한 LineEdit를 비운다.
+    }
+    //로그아웃 버튼일 경우
+    else {
+        /*로그인 상태였던 회원의 주문내역을 초기화한다.*/
+        query->exec("SELECT orderNumber FROM shopping WHERE orderUserID = '" + currentUserID + "';");
+        while(query->next()) rowHiddenCount++;
+        for(int i = 0; i < rowHiddenCount; i++) ui->orderListTableView->setRowHidden(i, true);
+
+        ui->orderListLabel->setText("주문 내역");           //주문하기 버튼의 예외처리를 위해 재지정한다.
+        ui->userIdLoginLineEdit->clear();                  //입력된 문자가 있을 경우를 대비하여 LineEdit을 비운다.
+        ui->addNewClientPushButton->setText("회원가입");    //로그아웃 하므로 회원가입 버튼으로 되돌린다.
+        ui->shoppingLoginPushButton->setText("로그인");     //로그아웃 하므로 로그인 버튼으로 되돌린다.
+    }
 }
 
 //로그인 성공 시 동작하는 SLOT 함수
-void ShoppingManager::successLoginCheck(QString clientName) {
-    ui->orderListLabel->setText(clientName + "님의 주문내역");   //Label에 사용자 이름 표시
+void ShoppingManager::successLoginCheck(QString userName, QString userID) {
+    ui->orderListLabel->setText(userName + "님의 주문내역");   //Label에 사용자 이름 표시
+    ui->addNewClientPushButton->setText("마이 페이지");        //'회원가입'버튼을 '마이 페이지'버튼으로 변경
+    ui->shoppingLoginPushButton->setText("로그아웃");         //'로그인'버튼을 '로그아웃'버튼으로 변경
 
-    loadShoppingWidget(clientName);     //로그인한 사용자가 주문한 주문내역을 불러오기 위한 함수
+    currentUserID = userID;         //현재 로그인한 회원의 아이디를 저장한다.
+    loadShoppingWidget(userID);     //로그인한 사용자가 주문한 주문내역을 불러오기 위한 함수
 }
 
 //로그인 성공 시 주문 내역 리스트에 해당 사용자가 주문한 리스트 출력
-void ShoppingManager::loadShoppingWidget(QString name) {
+void ShoppingManager::loadShoppingWidget(QString userID) {
+    /*주문내역을 출력하기 위해 숨겼던 주문 리스트를 출력한다.*/
     query->exec("SELECT orderNumber FROM shopping;");
     while(query->next()) rowHiddenCount++;
     for(int i = 0; i < rowHiddenCount; i++) ui->orderListTableView->setRowHidden(i, false);
 
-    shoppingModel->setFilter("orderUserName = '" + name + "';");
+    //주문내역 중 로그인한 회원의 주문내역만 출력하기 위해 조건을 추가한다.
+    shoppingModel->setFilter("orderUserID = '" + userID + "';");
     shoppingModel->select();
 }
 
@@ -191,12 +262,16 @@ void ShoppingManager::failedLoginCheck() {
     QMessageBox::critical(this, tr("로그인 실패"), tr("아이디가 일치하지 않습니다."));
 }
 
+void ShoppingManager::updateLabelName(QString name) {
+    //Label에 마이 페이지에서 수정된 사용자 이름 표시
+    ui->orderListLabel->setText(name + "님의 주문내역");
+}
+
 //주문하기 버튼 클릭 시 동작
 void ShoppingManager::on_takeOrderPushButton_clicked()
 {
     int orderNumber, proPrice, proCount, checkCount, totPrice;
-    QString proName, proType, address, userID;
-    QString clientName;
+    QString proName, proType, address, userName, userID;
     QList<QString> labelText;   //로그인한 아이디의 회원 이름을 구하기 위해 사용한 List변수
     bool ok;
 
@@ -204,9 +279,9 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
     QLineEdit *onlyNum = new QLineEdit(this);
     QIntValidator *intValidator = new QIntValidator(this);
 
-    onlyNum->setValidator(intValidator);                //입력할 LineEdit을 숫자 값인지 검사하도록 지정
+    onlyNum->setValidator(intValidator);                 //입력할 LineEdit을 숫자 값인지 검사하도록 지정
     labelText = ui->orderListLabel->text().split("님");  //OOO님의 주문내역 Label에서 이름을 구해오기 위해 실행
-    clientName = labelText[0];                           //split으로 자른 문장에서 사용자의 이름 부분을 clientName 변수에 저장
+    userName = labelText[0];                           //split으로 자른 문장에서 사용자의 이름 부분을 userName 변수에 저장
 
     /*로그인을 성공하여 Label의 길이가 길어지고 주문할 제품을 제품 위젯에서 선택했을 경우 실행*/
     if(ui->orderListLabel->text().length() > 5 && ui->productInfoTableView->currentIndex().isValid()) {
@@ -227,7 +302,7 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
         }
 
         //회원 주소의 경우 clientList에서 구해온다.
-        address = emit takeOrderSign(clientName);   //회원 주소를 구하기 위해 호출하는 SIGNAL
+        address = emit takeOrderSign(currentUserID);   //회원 주소를 구하기 위해 호출하는 SIGNAL
 
         //주문 시 제품의 재고량을 확인하기 위한 SIGNAL(리턴 값을 받아옴)
         checkCount = emit updateAfter_upCount(ui->productInfoTableView->currentIndex().sibling
@@ -239,18 +314,26 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
             return;
         }
 
-        totPrice = proPrice * proCount;
+        totPrice = proPrice * proCount; //제품의 가격과 주문 수량을 이용해 총 가격을 구한다.
 
+        //주문한 내역을 shopping테이블에 저장한다.
         query->exec("INSERT INTO shopping VALUES(" + QString::number(orderNumber) + ", '" + proName + "', " +
                     QString::number(proPrice) + ", " + QString::number(proCount) + ", '" + proType + "', " +
-                    QString::number(totPrice) + ", '" + clientName + "', '" + address + "');");
+                    QString::number(totPrice) + ", '" + currentUserID + "', '" + address + "');");
 
         QMessageBox::information(this, tr("주문 성공"), tr("주문이 완료되었습니다."));
 
         /*주문 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
     }
-    else return;
+    else if(ui->orderListLabel->text().length() <= 5) {
+        QMessageBox::warning(this, tr("주문 실패"), tr("로그인 후 주문 가능합니다."));
+        return;
+    }
+    else {
+        QMessageBox::information(this, tr("주문 실패"), tr("주문하실 제품을 선택해주세요."));
+        return;
+    }
 }
 
 //주문변경 버튼 클릭 시 동작
@@ -269,7 +352,7 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
     QIntValidator *intValidator = new QIntValidator(this);
 
     onlyNum->setValidator(intValidator);    //입력할 LineEdit을 숫자 값인지 검사하도록 지정
-    orderListIdx = ui->orderListTableView->currentIndex();
+    orderListIdx = ui->orderListTableView->currentIndex();  //변경할 주문내역을 확인하기 위해 구하는 Index
 
     /*주문 내역 위젯의 주문한 내역을 선택했을 경우에 실행한다.*/
     if(ui->orderListTableView->currentIndex().isValid()) {
@@ -285,14 +368,17 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
                 if(change == false) return;
             } while(change != true || updateCount <= 0);
 
+            /*변경할 주문의 주문 수량, 제품 가격을 구한다.*/
             query->exec("SELECT orderProCount, orderProPrice FROM shopping "
                         "WHERE orderNumber = " + QString::number(orderListIdx.sibling(orderListIdx.row(), 0).data().toInt()) + ";");
             rec = query->record();
             colIdx = rec.indexOf("orderProCount");
             priceIdx = rec.indexOf("orderProPrice");
 
-            orderCount = query->value(colIdx).toInt();
-            orderPrice = query->value(priceIdx).toInt();
+            while(query->next()) {
+                orderCount = query->value(colIdx).toInt();
+                orderPrice = query->value(priceIdx).toInt();
+            }
 
             /*기존의 주문수량이 변경할 수량보다 적을 경우*/
             if(orderCount < updateCount) {
@@ -308,6 +394,7 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
                 emit updateAfter_downCount(orderListIdx.sibling(orderListIdx.row(), 1).data().toString(), downCount);
             }
 
+            //변경 후의 결과로 shopping테이블을 변경한다.
             query->exec("UPDATE shopping SET orderProCount = " + QString::number(updateCount) + ", "
                                             "orderTotPrice = " + QString::number(updateCount*orderPrice) + " "
                         "WHERE orderNumber = " + QString::number(orderListIdx.sibling(orderListIdx.row(), 0).data().toInt()) + ";");
@@ -323,6 +410,7 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
                 if(change == false) return;
             } while(change != true || updateAddress.trimmed() == "");
 
+            //변경 후의 결과로 shopping테이블을 변경한다.
             query->exec("UPDATE shopping SET orderAddress = '" + updateAddress + "' "
                         "WHERE orderNumber = " + QString::number(orderListIdx.sibling(orderListIdx.row(), 0).data().toInt()) + ";");
 
@@ -344,12 +432,14 @@ void ShoppingManager::on_cancelOrderPushButton_clicked()
 
     /*주문 내역 테이블 뷰의 주문한 내역을 선택했을 경우에 실행한다.*/
     if(ui->orderListTableView->currentIndex().isValid()) {
+        /*삭제할 제품에 대한 정보를 가져온다.*/
         eraseNum = ui->orderListTableView->currentIndex().sibling(ui->orderListTableView->currentIndex().row(), 0).data().toInt();
         eraseName = ui->orderListTableView->currentIndex().sibling(ui->orderListTableView->currentIndex().row(), 1).data().toString();
         eraseCount = ui->orderListTableView->currentIndex().sibling(ui->orderListTableView->currentIndex().row(), 3).data().toInt();
 
-        emit updateAfter_downCount(eraseName, eraseCount);
+        emit updateAfter_downCount(eraseName, eraseCount);  //제품의 재고 관리를 위해 호출하는 SIGNAL
 
+        //선택한 주문을 삭제한다.
         query->exec("DELETE FROM shopping WHERE orderNumber = " + QString::number(eraseNum) + ";");
 
         QMessageBox::information(this, tr("취소 성공"), tr("주문이 취소되었습니다."));
@@ -408,6 +498,7 @@ void ShoppingManager::on_chatServerPushButton_clicked()
     bool ok;
     QString passwd;
 
+    /*관리자 번호의 입력에 관한 제약조건용 do-while문*/
     do {
         passwd = QInputDialog::getText(this, "Manager", "관리자 번호를 입력하세요.", QLineEdit::Normal, NULL, &ok);
         if(ok == false) break;
@@ -428,6 +519,7 @@ void ShoppingManager::on_chatServerPushButton_clicked()
 
 //회원의 아이디와 이름 리스트를 받아서 채팅서버로 전달하기 위한 SLOT 함수
 void ShoppingManager::clientSignalReceived(QString id, QString name) {
+    //사용자의 아이디와 리스트를 받아서 채팅서버로 전달하기 위해 호출하는 SIGNAL
     emit sendClientToServer(id, name);
 }
 

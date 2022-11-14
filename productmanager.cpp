@@ -6,21 +6,25 @@
 #include <QSqlRecord>
 #include <QSqlError>
 
-//생성자 - productlist.txt에 저장된 정보를 불러와 제품리스트에 저장한다.
+//생성자 - 제품용 DB와 모델을 생성하고 형식에 맞게 지정한다.
 ProductManager::ProductManager(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ProductManager)
 {
     ui->setupUi(this);
 
+    /*제품용 DB 생성*/
     QSqlDatabase sqlDB = QSqlDatabase::addDatabase("QSQLITE", "productDatabase");
     sqlDB.setDatabaseName("productList.db");
     if(!sqlDB.open()) return;
+
+    /*제품 번호를 기본키로 하는 제품 테이블 생성*/
     query = new QSqlQuery(sqlDB);
     query->exec("CREATE TABLE IF NOT EXISTS product(p_number INTEGER Primary Key, "
                 "productName VARCHAR(30) NOT NULL, productPrice INTEGER NOT NULL, "
                 "productCount INTEGER NOT NULL, productType VARCHAR(20) NOT NULL);");
 
+    /*제품 테이블용 모델 생성 및 헤더 지정*/
     productModel = new QSqlTableModel(this, sqlDB);
     productModel->setTable("product");
     productModel->select();
@@ -30,15 +34,30 @@ ProductManager::ProductManager(QWidget *parent) :
     productModel->setHeaderData(3, Qt::Horizontal, QObject::tr("제품 수량"));
     productModel->setHeaderData(4, Qt::Horizontal, QObject::tr("제품 종류"));
 
-    ui->productTableView->setModel(productModel);
+    ui->productTableView->setModel(productModel);   //생성한 모델을 테이블 뷰로 출력하기 위해 지정
 
     setWindowTitle(tr("Product Side"));     //열리는 윈도우의 제목을 Product Side로 설정한다.
 }
 
-//소멸자 - 제품리스트에 저장된 정보를 productlist.txt에 저장한다.
+//소멸자 - 생성한 객체를 삭제한다.
 ProductManager::~ProductManager()
 {
     delete ui;
+
+    /*생성한 DB 객체 삭제*/
+    QSqlDatabase db = QSqlDatabase::database("productDatabase");
+    if(db.isOpen()) {
+        productModel->submitAll();
+        delete productModel;
+        db.commit();
+        db.close();
+    }
+}
+
+//데이터 출력을 위한 함수
+void ProductManager::dataLoad() {
+    productModel->setFilter("");
+    productModel->select();
 }
 
 //제품 등록/변경 버튼 클릭 시 동작
@@ -61,25 +80,30 @@ void ProductManager::on_proRegisterPushButton_clicked()
         proCount = ui->productCountLineEdit->text().toInt();
         proType = ui->productTypeLineEdit->text();
 
+        /*제품 등록/변경 시 입력한 제품의 번호가 등록 되어있는지 검색한다.*/
         query->exec("SELECT p_number FROM product WHERE p_number = " + QString::number(proNumber) + ";");
         QSqlRecord rec = query->record();
         int colIdx = rec.indexOf("p_number");
 
         while(query->next()) checkProductNumber = query->value(colIdx).toString();
 
+        //해당 번호의 제품이 이미 등록 되어있는 경우
         if(checkProductNumber != "") {
+            //입력한 값으로 해당 번호의 제품의 정보를 변경한다.
             query->exec("UPDATE product SET productName = '" + proName + "'"
                             ", productPrice = " + QString::number(proPrice) + ""
                             ", productCount = " + QString::number(proCount) + ""
                             ", productType = '" + proType + "' "
                         "WHERE p_number = " + QString::number(proNumber) + ";");
-            qDebug() << query->lastError();
+            //변경 후의 정보를 출력한다.
             productModel->select();
 
             //제품 변경 완료에 대한 메시지를 표시한다.
             QMessageBox::information(this, tr("등록 성공"), tr("제품 목록이 변경되었습니다."));
         }
+        //해당 번호의 제품이 등록 되어있지 않은 경우
         else {
+            //입력한 값으로 해당 번호의 제품을 추가한다.
             query->exec("INSERT INTO product VALUES(" + QString::number(proNumber) + ", '" + proName + "', " +
                         QString::number(proPrice) + ", " + QString::number(proCount) + ", '" + proType + "');");
             productModel->select();
@@ -106,16 +130,21 @@ void ProductManager::on_proRemovePushButton_clicked()
 
     //제품 번호를 입력할 LineEdit가 빈칸이 아닐 경우(공백포함)
     if(ui->productNumberLineEdit->text().trimmed() != "") {
+        //입력한 제품의 번호로 등록 되어있는 제품이 있는지 검색한다.
         query->exec("SELECT p_number FROM product WHERE p_number = " + QString::number(proNumber) + ";");
         QSqlRecord rec = query->record();
         int colIdx = rec.indexOf("p_number");
 
         while(query->next()) checkProductNumber = query->value(colIdx).toString();
 
+        //등록된 제품이 없을 경우
         if(checkProductNumber == "") QMessageBox::warning(this, tr("삭제 실패"), tr("등록된 제품이 없습니다."));
+        //등록된 제품이 있을 경우
         else {
+            //해당 번호로 등록된 제품을 삭제한다.
             query->exec("DELETE FROM product WHERE p_number = " + QString::number(proNumber) + ";");
 
+            //삭제 후의 정보를 출력한다.
             productModel->select();
 
             //제품 삭제 완료에 대한 메시지를 표시한다.
@@ -189,12 +218,14 @@ void ProductManager::on_getOutPushButton_clicked()
 //제품 테이블에서 해당 제품을 클릭했을 경우 우측 라인Edit에 표시
 void ProductManager::on_productTableView_clicked(const QModelIndex &index)
 {
+    /*클릭한 테이블의 인덱스로 등록 되어있는 제품의 정보를 가져온다.*/
     QString productNumber = index.sibling(index.row(), 0).data().toString();
     QString productName = index.sibling(index.row(), 1).data().toString();
     QString productPrice = index.sibling(index.row(), 2).data().toString();
     QString productCount = index.sibling(index.row(), 3).data().toString();
     QString productType = index.sibling(index.row(), 4).data().toString();
 
+    /*가져온 정보를 알맞은 LineEdit에 출력한다.*/
     ui->productNumberLineEdit->setText(productNumber);
     ui->productNameLineEdit->setText(productName);
     ui->productPriceLineEdit->setText(productPrice);
@@ -205,12 +236,14 @@ void ProductManager::on_productTableView_clicked(const QModelIndex &index)
 //회원 테이블에서 해당 회원을 클릭했을 경우 우측 라인Edit에 표시
 void ProductManager::on_clientListTableView_clicked(const QModelIndex &index)
 {
+    /*클릭한 테이블의 인덱스로 등록 되어있는 제품의 정보를 가져온다.*/
     QString userID = index.sibling(index.row(), 0).data().toString();
     QString userName = index.sibling(index.row(), 1).data().toString();
     QString userCall = index.sibling(index.row(), 2).data().toString();
     QString userAddress = index.sibling(index.row(), 3).data().toString();
     QString userGender = index.sibling(index.row(), 4).data().toString();
 
+    /*가져온 정보를 알맞은 LineEdit에 출력한다.*/
     ui->userIdLineEdit->setText(userID);
     ui->userNameLineEdit->setText(userName);
     ui->userCallLineEdit->setText(userCall);
@@ -218,29 +251,26 @@ void ProductManager::on_clientListTableView_clicked(const QModelIndex &index)
     ui->userGenderLineEdit->setText(userGender);
 }
 
-//회원 정보 리스트 출력
-//void ProductManager::receivedClientInfo(Client *c) {
-
-//    //ui->clientListTreeWidget->addTopLevelItem(c);
-//}
-
 //clientManager에서 보내준 회원 정보를 관리자 페이지의 회원 테이블에 등록한다.
 void ProductManager::loadToClientTable(QSqlTableModel* clientModel) {
+    /*회원용 테이블 뷰에 회원 정보를 출력한다.*/
     clientModel->select();
     ui->clientListTableView->setModel(clientModel);
 }
 
-//제품 정보를 담아서 보내기(Shopping으로 보내기)
+//프로그램 첫 실행 시 제품 정보를 담아서 보내기(Shopping으로 보내기)
 void ProductManager::containProductInfo() {
     emit sendProductTable(productModel);    //쇼핑 화면으로 전달하기 위해 호출하는 SIGNAL
 }
 
+//쇼핑 화면에서 제품 검색 시 제품 정보를 쇼핑 화면으로 보내기 위한 SLOT 함수
 void ProductManager::selectProductInfo() {
-    emit sendSelectTable(productModel);
+    emit sendSelectTable(productModel);     //검색할 제품 정보를 쇼핑 화면으로 전달하기 위해 호출하는 SIGNAL
 }
 
+//쇼핑 화면에서 제품 검색 초기화 시 제품 정보를 쇼핑 화면으로 보내기 위한 SLOT 함수
 void ProductManager::resetProductInfo() {
-    emit sendResetTable(productModel);
+    emit sendResetTable(productModel);      //초기화할 제품 정보를 쇼핑 화면으로 전달하기 위해 호출하는 SIGNAL
 }
 
 //쇼핑에서 주문하기 or 주문변경 시 재고 확인 및 관리
@@ -248,6 +278,7 @@ int ProductManager::updateAfterUpCount(QString name, int cnt) {
     int afterCount;
     int checkProductCount;
 
+    /*주문한 제품의 수량을 검색한다.*/
     query->exec("SELECT productCount FROM product WHERE productName = '" + name + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("productCount");
@@ -260,6 +291,7 @@ int ProductManager::updateAfterUpCount(QString name, int cnt) {
         //상품의 재고량을 변경 이후의 값으로 조정한다.
         query->exec("UPDATE product SET productCount = " + QString::number(afterCount) + " "
                     "WHERE productName = '" + name + "';");
+        //재고량 변경 후의 정보를 출력한다.
         productModel->select();
     }
 
@@ -271,6 +303,7 @@ void ProductManager::updateAfterDownCount(QString name, int cnt) {
     int afterCount;
     QString checkProductCount;
 
+    /*주문한 제품의 수량을 검색한다.*/
     query->exec("SELECT productCount FROM product WHERE productName = '" + name + "';");
     QSqlRecord rec = query->record();
     int colIdx = rec.indexOf("productCount");
@@ -281,5 +314,6 @@ void ProductManager::updateAfterDownCount(QString name, int cnt) {
     //상품의 재고량을 변경 이후의 값으로 조정한다.
     query->exec("UPDATE product SET productCount = " + QString::number(afterCount) + " "
                 "WHERE productName = '" + name + "';");
+    //재고량 변경 후의 정보를 출력한다.
     productModel->select();
 }

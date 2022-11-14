@@ -37,6 +37,9 @@ private slots:
     void serverOpenFromShopping();          //쇼핑 화면에서 서버오픈 시 사용자의 ID와 이름을 전달해주기 위한 SLOT 함수
     void sendNameListToServer();            //쇼핑화면에서 서버 오픈 시 콤보박스에 등록될 사용자의 이름을 보내주기 위한 SLOT 함수
 
+    /*메인 윈도우에서 보낸 SIGNAL 처리*/
+    void viewMyPage(QString);               //쇼핑화면에서 마이 페이지 버튼 클릭 시 실행
+
 private:
     Ui::ClientManager *ui;
 
@@ -48,13 +51,14 @@ private:
 signals:
     /*회원 가입*/
     void join();                            //회원 등록 버튼 클릭 시 쇼핑 화면을 출력하기 위해 호출되는 신호
+    void updateInMyPage(QString);           //마이 페이지에서 회원의 정보를 변경한 후 쇼핑 화면 라벨을 변경하기 위해 보내는 SIGNAL
     void cancellation();                    //등록 취소 버튼 클릭 시 쇼핑 화면을 출력하기 위해 호출되는 신호
 
     /*관리자 페이지*/
     void sendClientTable(QSqlTableModel*);  //회원 정보의 전달을 위해 호출되는 신호
 
     /*쇼핑 화면 로그인*/
-    void successLogin(QString);             //쇼핑 화면에서 로그인 시도가 성공 시 해당 사용자의 이름을 보내기 위해 호출되는 신호
+    void successLogin(QString, QString);    //쇼핑 화면에서 로그인 시도가 성공 시 해당 사용자의 이름을 보내기 위해 호출되는 신호
     void failedLogin();                     //쇼핑 화면에서 로그인 시도가 실패 시 알려주기 위해 호출되는 신호
 
     /*채팅 프로그램*/

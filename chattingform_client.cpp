@@ -142,8 +142,6 @@ ChattingForm_Client::ChattingForm_Client(QWidget *parent)
 
     logData = new LogData(this);
 
-//    connect(this, SIGNAL(saveLogData(QString, QString)), logData, SLOT(saveClientData(QString, QString)));
-
     setWindowTitle(tr("Chat Client"));  //열리는 윈도우의 제목을 Chat Client로 설정한다.
 }
 
@@ -222,8 +220,7 @@ void ChattingForm_Client::receiveData()
 void ChattingForm_Client::sendData()
 {
     QString chat = inputLine->text();    //입력한 메시지를 QString타입의 변수에 담는다.
-    QString userName = name->text();    //접속한 회원의 이름을 QString타입의 변수에 담는다.
-    QString saveData = userName + ": " + chat;
+    QString userName = name->text();     //접속한 회원의 이름을 QString타입의 변수에 담는다.
 
     //입력한 메시지가 있을 경우
     if(chat.length()) {
