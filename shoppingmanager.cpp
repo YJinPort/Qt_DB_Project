@@ -159,7 +159,7 @@ void ShoppingManager::on_addNewClientPushButton_clicked()
 void ShoppingManager::on_removeClientPushButton_clicked()
 {
     bool questionCheck, inputUserId;
-    int orderIdx, nameIdx, countIdx;
+    int cnt = 0, orderIdx, nameIdx, countIdx;
     int checkUserId, eraseNum, eraseCount;
     QString question, userId;
     QString eraseName;
@@ -198,17 +198,17 @@ void ShoppingManager::on_removeClientPushButton_clicked()
             eraseNum = query->value(orderIdx).toInt();
             eraseName = query->value(nameIdx).toString();
             eraseCount = query->value(countIdx).toInt();
-            qDebug() << eraseNum << eraseName << eraseCount << "\n";
             emit updateAfter_downCount(eraseName, eraseCount);  //제품의 재고 관리를 위해 호출하는 SIGNAL
             deleteQuery->exec("DELETE FROM shopping WHERE orderNumber = " + QString::number(eraseNum) + ";");
-            qDebug() << deleteQuery->lastError();
-            /*삭제 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
-            shoppingModel->select();
+            cnt++;
         }
 
-        ui->orderListLabel->setText("주문 내역");           //주문하기 버튼의 예외처리를 위해 재지정한다.
+        /*ui의 초기화를 위해 버튼 텍스트를 변경한다.*/
+        ui->orderListLabel->setText("주문 내역");
+        ui->shoppingLoginPushButton->setText("로그인");
+        ui->addNewClientPushButton->setText("회원가입");
 
-
+        for(int i = 0; i < cnt; i++) ui->orderListTableView->setRowHidden(i, true);
     }
 }
 
@@ -262,6 +262,7 @@ void ShoppingManager::failedLoginCheck() {
     QMessageBox::critical(this, tr("로그인 실패"), tr("아이디가 일치하지 않습니다."));
 }
 
+//회원 정보 수정 후 라벨에서의 이름 표시
 void ShoppingManager::updateLabelName(QString name) {
     //Label에 마이 페이지에서 수정된 사용자 이름 표시
     ui->orderListLabel->setText(name + "님의 주문내역");
@@ -323,7 +324,7 @@ void ShoppingManager::on_takeOrderPushButton_clicked()
 
         QMessageBox::information(this, tr("주문 성공"), tr("주문이 완료되었습니다."));
 
-        /*주문 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
+        /*주문 이후의 수정된  주문에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
     }
     else if(ui->orderListLabel->text().length() <= 5) {
@@ -419,7 +420,7 @@ void ShoppingManager::on_updateOrderPushButton_clicked()
         //변경할 정보를 입력하는 과정에서 오타가 발생할 경우
         else QMessageBox::warning(this, tr("입력 값 오류"), tr("정확히 입력하세요."));
 
-        /*변경 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
+        /*변경 이후의 수정된 주문에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
     }
 }
@@ -444,7 +445,7 @@ void ShoppingManager::on_cancelOrderPushButton_clicked()
 
         QMessageBox::information(this, tr("취소 성공"), tr("주문이 취소되었습니다."));
 
-        /*삭제 이후의 수정된 제품 값에 대한 출력을 위해 실행한다.*/
+        /*삭제 이후의 수정된 주문에 대한 출력을 위해 실행한다.*/
         shoppingModel->select();
     }
     /*주문 내역 테이블 뷰의 주문한 내역을 선택하지 않았을 경우에 실행한다.*/

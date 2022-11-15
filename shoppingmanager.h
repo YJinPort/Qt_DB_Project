@@ -53,7 +53,7 @@ private slots:
     void productViewReset(QSqlTableModel*);         //제품 목록을 검색 전 상태로 초기화하는 SLOT 함수
     void successLoginCheck(QString, QString);       //로그인 성공 시 동작하는 SLOT 함수
     void failedLoginCheck();                        //로그인 실패 시 동작하는 SLOT 함수
-    void updateLabelName(QString);
+    void updateLabelName(QString);                  //회원 정보 수정 후 라벨에서의 이름 표시
     void clientSignalReceived(QString, QString);    //사용자의 아이디와 리스트를 받아서 채팅서버로 전달하기 위한 SLOT 함수
     void inputNameServerCombobox(QStringList);      //사용자의 이름 리스트를 받아서 채팅서버로 전달하기 위한 SLOT 함수
     void on_selectPushButton_clicked();             //제품 검색 버튼 클릭 시 동작
