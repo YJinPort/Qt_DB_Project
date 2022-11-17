@@ -25,15 +25,15 @@ ShoppingManager::ShoppingManager(QWidget *parent) :
     query->exec("CREATE TABLE IF NOT EXISTS shopping(orderNumber INTEGER Primary Key, "
                 "orderProName VARCHAR(30) NOT NULL, orderProPrice INTEGER NOT NULL, "
                 "orderProCount INTEGER NOT NULL, orderProType VARCHAR(20), "
-                "orderTotPrice INTEGER NOT NULL, orderUserID VARCHAR(30), "
-                "orderAddress VARCHAR(100));");
+                "orderTotPrice INTEGER NOT NULL, orderUserID VARCHAR(30) NOT NULL, "
+                "orderAddress VARCHAR(100) NOT NULL);");
 
     /*주문 테이블용 모델 생성 및 헤더 지정*/
     shoppingModel = new QSqlTableModel(this, sqlDB);
     shoppingModel->setTable("shopping");
     shoppingModel->select();
     shoppingModel->setHeaderData(0, Qt::Horizontal, QObject::tr("주문 번호"));
-    shoppingModel->setHeaderData(1, Qt::Horizontal, QObject::tr("제품 이름"));
+    shoppingModel->setHeaderData(1, Qt::Horizontal, QObject::tr("주문 제품"));
     shoppingModel->setHeaderData(2, Qt::Horizontal, QObject::tr("제품 가격"));
     shoppingModel->setHeaderData(3, Qt::Horizontal, QObject::tr("주문 수량"));
     shoppingModel->setHeaderData(4, Qt::Horizontal, QObject::tr("제품 종류"));
@@ -241,11 +241,11 @@ void ShoppingManager::successLoginCheck(QString userName, QString userID) {
     ui->shoppingLoginPushButton->setText("로그아웃");         //'로그인'버튼을 '로그아웃'버튼으로 변경
 
     currentUserID = userID;         //현재 로그인한 회원의 아이디를 저장한다.
-    loadShoppingWidget(userID);     //로그인한 사용자가 주문한 주문내역을 불러오기 위한 함수
+    loadShoppingView(userID);     //로그인한 사용자가 주문한 주문내역을 불러오기 위한 함수
 }
 
 //로그인 성공 시 주문 내역 리스트에 해당 사용자가 주문한 리스트 출력
-void ShoppingManager::loadShoppingWidget(QString userID) {
+void ShoppingManager::loadShoppingView(QString userID) {
     /*주문내역을 출력하기 위해 숨겼던 주문 리스트를 출력한다.*/
     query->exec("SELECT orderNumber FROM shopping;");
     while(query->next()) rowHiddenCount++;
@@ -441,7 +441,9 @@ void ShoppingManager::on_cancelOrderPushButton_clicked()
         emit updateAfter_downCount(eraseName, eraseCount);  //제품의 재고 관리를 위해 호출하는 SIGNAL
 
         //선택한 주문을 삭제한다.
-        query->exec("DELETE FROM shopping WHERE orderNumber = " + QString::number(eraseNum) + ";");
+        query->exec("DELETE FROM shopping WHERE orderNumber = "
+                    "" + QString::number(eraseNum) + ";");
+        shoppingModel->select();
 
         QMessageBox::information(this, tr("취소 성공"), tr("주문이 취소되었습니다."));
 

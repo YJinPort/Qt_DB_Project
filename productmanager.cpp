@@ -20,7 +20,7 @@ ProductManager::ProductManager(QWidget *parent) :
 
     /*제품 번호를 기본키로 하는 제품 테이블 생성*/
     query = new QSqlQuery(sqlDB);
-    query->exec("CREATE TABLE IF NOT EXISTS product(p_number INTEGER Primary Key, "
+    query->exec("CREATE TABLE IF NOT EXISTS product(productNumber INTEGER Primary Key, "
                 "productName VARCHAR(30) NOT NULL, productPrice INTEGER NOT NULL, "
                 "productCount INTEGER NOT NULL, productType VARCHAR(20) NOT NULL);");
 
@@ -81,9 +81,9 @@ void ProductManager::on_proRegisterPushButton_clicked()
         proType = ui->productTypeLineEdit->text();
 
         /*제품 등록/변경 시 입력한 제품의 번호가 등록 되어있는지 검색한다.*/
-        query->exec("SELECT p_number FROM product WHERE p_number = " + QString::number(proNumber) + ";");
+        query->exec("SELECT productNumber FROM product WHERE productNumber = " + QString::number(proNumber) + ";");
         QSqlRecord rec = query->record();
-        int colIdx = rec.indexOf("p_number");
+        int colIdx = rec.indexOf("productNumber");
 
         while(query->next()) checkProductNumber = query->value(colIdx).toString();
 
@@ -94,9 +94,9 @@ void ProductManager::on_proRegisterPushButton_clicked()
                             ", productPrice = " + QString::number(proPrice) + ""
                             ", productCount = " + QString::number(proCount) + ""
                             ", productType = '" + proType + "' "
-                        "WHERE p_number = " + QString::number(proNumber) + ";");
-            //변경 후의 정보를 출력한다.
-            productModel->select();
+                        "WHERE productNumber = " + QString::number(proNumber) + ";");
+
+            productModel->select(); //변경 후의 정보를 출력한다.
 
             //제품 변경 완료에 대한 메시지를 표시한다.
             QMessageBox::information(this, tr("등록 성공"), tr("제품 목록이 변경되었습니다."));
@@ -104,8 +104,9 @@ void ProductManager::on_proRegisterPushButton_clicked()
         //해당 번호의 제품이 등록 되어있지 않은 경우
         else {
             //입력한 값으로 해당 번호의 제품을 추가한다.
-            query->exec("INSERT INTO product VALUES(" + QString::number(proNumber) + ", '" + proName + "', " +
-                        QString::number(proPrice) + ", " + QString::number(proCount) + ", '" + proType + "');");
+            query->exec("INSERT INTO product VALUES(" + QString::number(proNumber) + ", "
+                        "'" + proName + "', " + QString::number(proPrice) + ", "
+                        "" + QString::number(proCount) + ", '" + proType + "');");
             productModel->select();
 
             //제품 등록 완료에 대한 메시지를 표시한다.
@@ -131,9 +132,9 @@ void ProductManager::on_proRemovePushButton_clicked()
     //제품 번호를 입력할 LineEdit가 빈칸이 아닐 경우(공백포함)
     if(ui->productNumberLineEdit->text().trimmed() != "") {
         //입력한 제품의 번호로 등록 되어있는 제품이 있는지 검색한다.
-        query->exec("SELECT p_number FROM product WHERE p_number = " + QString::number(proNumber) + ";");
+        query->exec("SELECT productNumber FROM product WHERE productNumber = " + QString::number(proNumber) + ";");
         QSqlRecord rec = query->record();
-        int colIdx = rec.indexOf("p_number");
+        int colIdx = rec.indexOf("productNumber");
 
         while(query->next()) checkProductNumber = query->value(colIdx).toString();
 
@@ -142,7 +143,7 @@ void ProductManager::on_proRemovePushButton_clicked()
         //등록된 제품이 있을 경우
         else {
             //해당 번호로 등록된 제품을 삭제한다.
-            query->exec("DELETE FROM product WHERE p_number = " + QString::number(proNumber) + ";");
+            query->exec("DELETE FROM product WHERE productNumber = " + QString::number(proNumber) + ";");
 
             //삭제 후의 정보를 출력한다.
             productModel->select();

@@ -20,7 +20,7 @@ ClientManager::ClientManager(QWidget *parent) :
     query = new QSqlQuery(sqlDB);
     query->exec("CREATE TABLE IF NOT EXISTS client(userID VARCHAR(30) Primary Key, "
                "userName VARCHAR(20) NOT NULL, userCall VARCHAR(13) NOT NULL, "
-               "userAddress VARCHAR(100) NOT NULL, userGender VARCHAR(15));");
+               "userAddress VARCHAR(100) NOT NULL, userGender VARCHAR(10));");
 
     /*회원 테이블용 모델 생성 및 헤더 지정*/
     clientModel = new QSqlTableModel(this, sqlDB);
