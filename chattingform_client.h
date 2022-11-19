@@ -34,22 +34,21 @@ private slots:
 private:
     QLineEdit *name;                    //회원 이름을 입력할 LineEdit
     QTextEdit *message;                 //서버 전달되는 메시지용 TextEdit
-    QLineEdit *serverAddress;           //서버 IP주소를 입력할 LineEdit
-    QLineEdit *serverPort;              //서버 포트 번호를 입력할 LineEdit
+    QLineEdit* serverAddress;           //서버 IP주소를 입력할 LineEdit
+    QLineEdit* serverPort;              //서버 포트 번호를 입력할 LineEdit
     QLineEdit *inputLine;               //서버로 전송할 메시지를 입력할 LineEdit
     QPushButton *connectButton;         //서버로의 접속 처리를 위한 버튼
     QPushButton *sendButton;            //메시지 전송을 위한 버튼
-    QPushButton *fileButton;            //파일 전송을 위한 버튼
+    QPushButton* fileButton;            //파일 전송을 위한 버튼
     QTcpSocket *clientSocket;           //클라이언트 채팅용 소켓 생성
     QTcpSocket *fileClient;             //클라이언트 파일용 소켓 생성
-    QProgressDialog *progressDialog;    //파일 전송률 확인을 위한 progressDialog
+    QProgressDialog* progressDialog;    //파일 전송률 확인을 위한 progressDialog
     QFile* file;                        //서버로 전송할 파일
     qint64 loadSize;                    //전송할 파일의 크기
     qint64 byteToWrite;                 //전송하고 남은 파일의 크기
     qint64 totalSize;                   //전체 파일의 크기
     QByteArray outBlock;                //파일 전송을 위한 데이터
     bool isSent;                        //파일 서버에 대한 접속 확인
-    LogData *logData;                   //메시지 전송에 대한 로그를 남기기 위한 멤버 변수
 
     void closeEvent(QCloseEvent*) override;     //윈도우Title 창의 X를 눌러 종료하였을 경우 처리하는 이벤트 핸들러
 };

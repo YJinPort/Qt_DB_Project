@@ -1,5 +1,4 @@
 #include "chattingform_client.h"
-#include "logdata.h"
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QPushButton>
@@ -140,8 +139,6 @@ ChattingForm_Client::ChattingForm_Client(QWidget *parent)
         }
     } );
 
-    logData = new LogData(this);
-
     setWindowTitle(tr("Chat Client"));  //열리는 윈도우의 제목을 Chat Client로 설정한다.
 }
 
@@ -154,8 +151,8 @@ ChattingForm_Client::~ChattingForm_Client() {
 
 //편리한 서버 접속을 위한 로그인한 회원의 이름을 자동 지정
 void ChattingForm_Client::receivedLoginName(QString userName) {
-//    name->setText(userName);
-//    name->setDisabled(true);
+    name->setText(userName);
+    name->setDisabled(true);
 }
 
 //서버에서 전달되는 데이터를 받을 경우 처리
@@ -217,18 +214,17 @@ void ChattingForm_Client::receiveData()
 }
 
 //메시지를 전송할 경우 실행
-void ChattingForm_Client::sendData()
+void ChattingForm_Client::sendData(  )
 {
-    QString chat = inputLine->text();    //입력한 메시지를 QString타입의 변수에 담는다.
-    QString userName = name->text();     //접속한 회원의 이름을 QString타입의 변수에 담는다.
+    QString str = inputLine->text();    //입력한 메시지를 QString타입의 변수에 담는다.
+    QString userName = name->text();    //접속한 회원의 이름을 QString타입의 변수에 담는다.
 
     //입력한 메시지가 있을 경우
-    if(chat.length()) {
+    if(str.length()) {
         QByteArray bytearray;
-        bytearray = chat.toUtf8();
+        bytearray = str.toUtf8();
         /*메시지 전송 시 전송자 이름 추가*/
-        message->append("<font color=black><b>" + userName +"</b></font> : " + chat);
-        logData->saveClientData(userName, chat);    //전송한 메시지를 사용자 이름의 텍스트 파일로 저장한다.
+        message->append("<font color=black>" + userName +"</font> : " + str);
         sendProtocol(Chat_Talk, bytearray.data());
     }
 }

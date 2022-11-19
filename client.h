@@ -7,7 +7,7 @@ class Client : public QTreeWidgetItem
 {
 public:
     /*생성자의 인자값을 선언과 동시에 초기화*/
-    explicit Client(QString = "", QString = "", QString = "", QString = "", QString = "");
+    explicit Client(int = 0, QString = "", QString = "", QString = "", QString = "", QString = "");
 
     /*사용자 정보를 호출하기 위해 사용되는 함수*/
     QString getUserID() const;          //사용자 아이디를 호출하기 위해 사용
@@ -22,6 +22,9 @@ public:
     void setPhoneNumber(QString&);  //사용자 전화번호를 지정하기 위해 사용
     void setAddress(QString&);      //사용자 주소를 지정하기 위해 사용
     void setGender(QString&);       //사용자 성별을 지정하기 위해 사용
+
+    /*사용자 수를 호출하기 위해 사용되는 함수*/
+    int userNumber() const;          //사용자 번호를 호출하기 위해 사용
 };
 
 #endif // CLIENT_H

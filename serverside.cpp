@@ -142,7 +142,7 @@ void ServerSide::receiveData()
         break;
 
     /*채팅방에 참여하였을 경우*/
-    case Chat_In: {
+    case Chat_In:
         //채팅방에 입장한 회원의 이름과 동일한 이름의 정보를 client위젯에서 찾는다.
         foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
             /*찾은 item의 정보를 지정한다.*/
@@ -155,21 +155,6 @@ void ServerSide::receiveData()
             clientNameHash[port] = name;
             if(clientSocketHash.contains(name)) clientSocketHash[name] = clientConnection;
         }
-
-        /*채팅한 내역에 대한 로그를 남긴다.*/
-        QTreeWidgetItem* item = new QTreeWidgetItem(ui->messageTreeWidget); //로그를 남기기 위한 객체 생성
-
-        /*생성한 객체에 로그에 대한 정보를 지정한다.*/
-        item->setText(0, ip);                                           //회원 IP주소
-        item->setText(1, QString::number(port));                        //회원 포트 번호
-        item->setText(2, clientIDHash[clientNameHash[port]]);           //회원 아이디
-        item->setText(3, clientNameHash[port]);                         //회원 이름
-        item->setText(4, clientNameHash[port] + "님이 입장하였습니다.");   //회원의 입장 알림
-        item->setText(5, QDateTime::currentDateTime().toString());      //현재 날짜와 시간
-
-        ui->messageTreeWidget->addTopLevelItem(item);                   //서버의 로그 위젯에 item정보를 추가한다.
-        ui->messageTreeWidget->resizeColumnToContents(4);               //로그에 표현될 컬럼의 사이즈를 메시지의 길이에 따라 결정한다.
-    }
         break;
 
     /*메시지를 보낼 경우*/
@@ -190,7 +175,6 @@ void ServerSide::receiveData()
                 sock->write(sendArray);
             }
         }
-
 
         /*채팅한 내역에 대한 로그를 남긴다.*/
         QTreeWidgetItem* item = new QTreeWidgetItem(ui->messageTreeWidget); //로그를 남기기 위한 객체 생성
@@ -215,7 +199,7 @@ void ServerSide::receiveData()
         break;
 
     /*채팅방에서 대기방으로 이동하였을 경우*/
-    case Chat_Out: {
+    case Chat_Out:
         //대기방으로 이동한 회원의 이름과 동일한 이름의 정보를 client위젯에서 찾는다.
         foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1)) {
             /*찾은 item의 정보를 지정한다.*/
@@ -226,21 +210,6 @@ void ServerSide::receiveData()
 
             clientNameHash.remove(port);    //회원의 포트번호에 대한 정보를 제거한다.
         }
-
-        /*채팅한 내역에 대한 로그를 남긴다.*/
-        QTreeWidgetItem* item = new QTreeWidgetItem(ui->messageTreeWidget); //로그를 남기기 위한 객체 생성
-
-        /*생성한 객체에 로그에 대한 정보를 지정한다.*/
-        item->setText(0, ip);                                           //회원 IP주소
-        item->setText(1, QString::number(port));                        //회원 포트 번호
-        item->setText(2, clientIDHash[clientNameHash[port]]);           //회원 아이디
-        item->setText(3, clientNameHash[port]);                         //회원 이름
-        item->setText(4, clientNameHash[port] + "님이 퇴장하였습니다.");   //회원의 퇴장 알림
-        item->setText(5, QDateTime::currentDateTime().toString());      //현재 날짜와 시간
-
-        ui->messageTreeWidget->addTopLevelItem(item);                   //서버의 로그 위젯에 item정보를 추가한다.
-        ui->messageTreeWidget->resizeColumnToContents(4);               //로그에 표현될 컬럼의 사이즈를 메시지의 길이에 따라 결정한다.
-    }
         break;
 
     /*채팅 프로그램 사용을 종료하였을 경우*/
@@ -408,7 +377,7 @@ void ServerSide::on_sendPushButton_clicked()
             QDataStream out(&sendArray, QIODevice::WriteOnly);
             out << Chat_Talk;
             sendArray.append("<font color=blue>");
-            sendArray.append("<b>Administrator</b>");
+            sendArray.append("Administrator");
             sendArray.append("</font> : ");
             sendArray.append(ui->sendLineEdit->text().toStdString().data());
             sock->write(sendArray);
