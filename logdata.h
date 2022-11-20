@@ -17,11 +17,13 @@ private:
 
     QList<QTreeWidgetItem*> itemList;   //기록할 로그의 데이터를 저장할 List
     QString fileName;                   //파일 전송 로그 기록 시 사용할 파일명
+    QString saveTime;                   //클라이언트의 채팅 저장 시 기록할 시간
 
 public slots:
     /*로그 기록 저장 시 사용할 SLOT 함수*/
-    void appendData(QTreeWidgetItem*);  //저장된 로그 리스트에 데이터를 추가할 경우 사용
-    void saveData();                    //서버에서 저장 버튼 클릭 시 실행
+    void appendData(QTreeWidgetItem*);      //저장된 로그 리스트에 데이터를 추가할 경우 사용
+    void saveClientData(QString, QString);  //클라이언트가 메시지 전송 시 실행
+    void saveData();                        //서버에서 저장 버튼 클릭 시 실행
 };
 
 #endif // LOGDATA_H

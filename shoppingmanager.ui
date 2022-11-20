@@ -195,10 +195,52 @@
              </property>
             </spacer>
            </item>
+           <item>
+            <widget class="QLineEdit" name="selectLineEdit">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>22</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="selectPushButton">
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>22</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>제품 검색</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="resetPushButton">
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>22</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>초기화</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
-          <widget class="QTreeWidget" name="productInfoTreeWidget">
+          <widget class="QTableView" name="productInfoTableView">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -210,43 +252,27 @@
            <property name="autoScrollMargin">
             <number>16</number>
            </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
            <property name="textElideMode">
-            <enum>Qt::ElideRight</enum>
+            <enum>Qt::ElideLeft</enum>
            </property>
-           <property name="sortingEnabled">
+           <property name="showGrid">
+            <bool>true</bool>
+           </property>
+           <property name="gridStyle">
+            <enum>Qt::SolidLine</enum>
+           </property>
+           <attribute name="verticalHeaderVisible">
             <bool>false</bool>
-           </property>
-           <property name="allColumnsShowFocus">
-            <bool>false</bool>
-           </property>
-           <property name="columnCount">
-            <number>5</number>
-           </property>
-           <column>
-            <property name="text">
-             <string>제품 번호</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 이름</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 가격</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 수량</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 종류</string>
-            </property>
-           </column>
+           </attribute>
           </widget>
          </item>
         </layout>
@@ -337,46 +363,34 @@
           </layout>
          </item>
          <item>
-          <widget class="QTreeWidget" name="orderListTreeWidget">
+          <widget class="QTableView" name="orderListTableView">
+           <property name="minimumSize">
+            <size>
+             <width>296</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="contextMenuPolicy">
             <enum>Qt::ActionsContextMenu</enum>
            </property>
            <property name="lineWidth">
             <number>1</number>
            </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
            <property name="textElideMode">
             <enum>Qt::ElideRight</enum>
            </property>
-           <column>
-            <property name="text">
-             <string>주문 번호</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 이름</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 가격</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>주문 수량</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>제품 종류</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>배송 주소</string>
-            </property>
-           </column>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -441,6 +455,22 @@
     <hint type="destinationlabel">
      <x>583</x>
      <y>206</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectLineEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>selectPushButton</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>197</x>
+     <y>291</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>291</y>
     </hint>
    </hints>
   </connection>

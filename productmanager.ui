@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
@@ -36,32 +36,25 @@
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <widget class="QTreeWidget" name="productListTreeWidget">
-        <column>
-         <property name="text">
-          <string>제품 번호</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>제품 이름</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>제품 가격</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>제품 수량</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>제품 종류</string>
-         </property>
-        </column>
+       <widget class="QTableView" name="productTableView">
+        <property name="minimumSize">
+         <size>
+          <width>458</width>
+          <height>258</height>
+         </size>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
        </widget>
        <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -166,9 +159,6 @@
            <item row="6" column="1">
             <widget class="QLineEdit" name="productCountLineEdit"/>
            </item>
-           <item row="8" column="1">
-            <widget class="QLineEdit" name="productTypeLineEdit"/>
-           </item>
            <item row="7" column="1">
             <spacer name="verticalSpacer_4">
              <property name="orientation">
@@ -193,6 +183,9 @@
               <string>Type</string>
              </property>
             </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QLineEdit" name="productTypeLineEdit"/>
            </item>
            <item row="9" column="1">
             <spacer name="verticalSpacer_9">
@@ -241,37 +234,25 @@
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <widget class="QTreeWidget" name="clientListTreeWidget">
-        <column>
-         <property name="text">
-          <string>회원 번호</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>회원 아이디</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>회원 이름</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>회원 전화번호</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>회원 주소</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>회원 성별</string>
-         </property>
-        </column>
+       <widget class="QTableView" name="clientListTableView">
+        <property name="minimumSize">
+         <size>
+          <width>458</width>
+          <height>258</height>
+         </size>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
        </widget>
        <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -376,6 +357,19 @@
            <item row="6" column="1">
             <widget class="QLineEdit" name="userAddressLineEdit"/>
            </item>
+           <item row="7" column="1">
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item row="8" column="0">
             <widget class="QLabel" name="userGenderLabel">
              <property name="font">
@@ -390,19 +384,6 @@
            </item>
            <item row="8" column="1">
             <widget class="QLineEdit" name="userGenderLineEdit"/>
-           </item>
-           <item row="7" column="1">
-            <spacer name="verticalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
            </item>
            <item row="9" column="1">
             <spacer name="verticalSpacer_10">
@@ -446,6 +427,13 @@
        </widget>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="getOutPushButton">
+       <property name="text">
+        <string>나가기</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -460,13 +448,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <widget class="QPushButton" name="getOutPushButton">
-     <property name="text">
-      <string>나가기</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

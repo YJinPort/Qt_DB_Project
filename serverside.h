@@ -35,9 +35,9 @@ public:
 
 private slots:
     /*채팅 서버에서 사용되는 SLOT 함수*/
-    void clientConnect( );                  //회원과의 채팅 연결 관리
-    void receiveData( );                    //회원과의 채팅에 대한 관리
-    void removeClient( );                   //클라이언트가 종료되었는데 로그아웃 신호를 받지 못할 경우를 위한 안전장치
+    void clientConnect();                   //회원과의 채팅 연결 관리
+    void receiveData();                     //회원과의 채팅에 대한 관리
+    void removeClient();                    //클라이언트가 종료되었는데 로그아웃 신호를 받지 못할 경우를 위한 안전장치
     void addClient(QString, QString);       //클라이언트가 추가되었을 경우
     void inviteClient();                    //클라이언트 초대하기
     void kickOut();                         //클라이언트 강퇴하기
@@ -67,14 +67,14 @@ private:
     QMenu* menu;                                    //메뉴 생성을 위한 멤버 변수
 
     /*파일*/
-    QFile* file;                        //파일 전송을 위한 멤버 변수
-    QProgressDialog* progressDialog;    //파일 전송 시 전송률을 나타내기 위한 멤버 변수
+    QFile *file;                        //파일 전송을 위한 멤버 변수
+    QProgressDialog *progressDialog;    //파일 전송 시 전송률을 나타내기 위한 멤버 변수
     qint64 totalSize;                   //파일의 크기를 나타내기 위한 멤버 변수
     qint64 byteReceived;                //파일 전송 시 사용되는 멤버 변수
     QByteArray inBlock;                 //파일 전송 크기를 위한 멤버 변수
 
     /*로그*/
-    LogData* logData;   //서버의 전송에 대한 로그를 남기기 위한 멤버 변수
+    LogData *logData;   //서버의 전송에 대한 로그를 남기기 위한 멤버 변수
 
     /*사용자 정의 이벤트 핸들러*/
     void closeEvent(QCloseEvent*) override;     //윈도우Title 창의 X를 눌러 종료하였을 경우 처리하는 이벤트 핸들러
